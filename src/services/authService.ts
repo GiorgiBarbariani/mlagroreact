@@ -11,11 +11,19 @@ interface LoginResponse {
   token: string;
 }
 
+interface RegisterResponse {
+  success: boolean;
+  message: string;
+  userId: string;
+}
+
 interface RegisterData {
   email: string;
   password: string;
-  name: string;
-  companyName?: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
 }
 
 class AuthService {
@@ -24,8 +32,14 @@ class AuthService {
     return response.data;
   }
 
-  async register(data: RegisterData): Promise<LoginResponse> {
-    const response = await apiClient.post<LoginResponse>('/auth/register', data);
+  async register(data: RegisterData): Promise<RegisterResponse> {
+    const response = await apiClient.post<RegisterResponse>('/auth/register', {
+      email: data.email,
+      username: data.username,
+      password: data.password,
+      firstName: data.firstName,
+      lastName: data.lastName
+    });
     return response.data;
   }
 
@@ -34,12 +48,13 @@ class AuthService {
   }
 
   async validateToken(token: string): Promise<LoginResponse['user']> {
-    const response = await apiClient.get<LoginResponse['user']>('/auth/validate', {
+    const response = await apiClient.get('/auth/me', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
-    return response.data;
+    // The /auth/me endpoint returns { user: {...} }, so we need to extract the user
+    return response.data.user;
   }
 
   async forgotPassword(email: string): Promise<void> {

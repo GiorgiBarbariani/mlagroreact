@@ -1,23 +1,23 @@
 @import '../styles/variables';
 @import '../styles/mixins';
 
-.registration-page {
+.verify-email-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, rgba($primary-color, 0.1) 0%, rgba($secondary-color, 0.1) 100%);
 
-  .registration-container {
+  .verify-container {
     width: 100%;
-    max-width: 600px;
+    max-width: 450px;
     padding: $spacing-lg;
 
-    .registration-card {
+    .verify-card {
       @include card;
       background: white;
 
-      .registration-header {
+      .verify-header {
         text-align: center;
         margin-bottom: $spacing-xl;
 
@@ -30,16 +30,23 @@
         h2 {
           color: $gray-900;
           font-size: 24px;
-          margin-bottom: $spacing-xs;
+          margin-bottom: $spacing-md;
         }
 
         p {
           color: $gray-600;
           font-size: 14px;
+          margin-bottom: $spacing-xs;
+        }
+
+        .email-display {
+          font-weight: 600;
+          color: $primary-color;
+          font-size: 16px;
         }
       }
 
-      .registration-form {
+      .verify-form {
         .success-message {
           background: rgba($success-color, 0.1);
           color: $success-color;
@@ -47,6 +54,7 @@
           border-radius: $border-radius-sm;
           margin-bottom: $spacing-md;
           font-size: 14px;
+          text-align: center;
         }
 
         .error-message {
@@ -56,71 +64,35 @@
           border-radius: $border-radius-sm;
           margin-bottom: $spacing-md;
           font-size: 14px;
+          text-align: center;
         }
 
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: $spacing-md;
-        }
+        .code-input-container {
+          display: flex;
+          gap: $spacing-sm;
+          justify-content: center;
+          margin-bottom: $spacing-xl;
 
-        .form-group {
-          margin-bottom: $spacing-lg;
-
-          label {
-            display: block;
-            margin-bottom: $spacing-xs;
-            color: $gray-700;
-            font-size: 14px;
-            font-weight: 500;
-          }
-
-          input {
-            width: 100%;
-            padding: $spacing-sm $spacing-md;
-            border: 1px solid $gray-300;
-            border-radius: $border-radius-sm;
-            font-size: 14px;
+          .code-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            border: 2px solid $gray-300;
+            border-radius: $border-radius-md;
+            background: white;
+            transition: all 0.3s ease;
 
             &:focus {
               outline: none;
               border-color: $primary-color;
+              box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
             }
 
-            &.error {
-              border-color: $error-color;
-            }
-          }
-
-          .field-error {
-            color: $error-color;
-            font-size: 12px;
-            margin-top: $spacing-xs;
-            display: block;
-          }
-        }
-
-        .form-options {
-          margin-bottom: $spacing-lg;
-
-          .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: $spacing-xs;
-            color: $gray-700;
-            font-size: 14px;
-
-            input[type="checkbox"] {
-              margin: 0;
-            }
-
-            a {
-              color: $primary-color;
-              text-decoration: none;
-
-              &:hover {
-                text-decoration: underline;
-              }
+            &:disabled {
+              background: $gray-100;
+              cursor: not-allowed;
             }
           }
         }
@@ -132,10 +104,15 @@
           color: white;
           padding: $spacing-md;
           font-size: 16px;
+
+          &:disabled {
+            background: $gray-400;
+            cursor: not-allowed;
+          }
         }
       }
 
-      .registration-footer {
+      .verify-footer {
         margin-top: $spacing-xl;
         text-align: center;
         padding-top: $spacing-lg;
@@ -144,15 +121,25 @@
         p {
           color: $gray-600;
           font-size: 14px;
+          margin-bottom: $spacing-sm;
+        }
 
-          a {
-            color: $primary-color;
-            text-decoration: none;
-            font-weight: 500;
+        .resend-button {
+          background: none;
+          border: none;
+          color: $primary-color;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          padding: $spacing-xs $spacing-sm;
 
-            &:hover {
-              text-decoration: underline;
-            }
+          &:hover:not(:disabled) {
+            text-decoration: underline;
+          }
+
+          &:disabled {
+            color: $gray-500;
+            cursor: not-allowed;
           }
         }
       }
@@ -160,11 +147,15 @@
   }
 
   @include responsive(sm) {
-    .registration-container {
-      .registration-card {
-        .registration-form {
-          .form-row {
-            grid-template-columns: 1fr;
+    .verify-container {
+      .verify-card {
+        .verify-form {
+          .code-input-container {
+            .code-input {
+              width: 40px;
+              height: 50px;
+              font-size: 20px;
+            }
           }
         }
       }

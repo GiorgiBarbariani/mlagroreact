@@ -1,0 +1,282 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.gis-page {
+  height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+
+  .gis-header {
+    padding: $spacing-md $spacing-lg;
+    background: white;
+    border-bottom: 1px solid $gray-200;
+    display: flex;
+    align-items: center;
+    gap: $spacing-lg;
+
+    .back-button {
+      @include button-base;
+      background: transparent;
+      border: 1px solid $gray-300;
+      color: $gray-700;
+      padding: $spacing-sm $spacing-md;
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+
+      &:hover {
+        background: $gray-50;
+      }
+    }
+
+    h1 {
+      font-size: 24px;
+      color: $gray-900;
+      margin: 0;
+    }
+  }
+
+  .gis-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+
+    .gis-sidebar {
+      width: 280px;
+      background: white;
+      border-right: 1px solid $gray-200;
+      overflow-y: auto;
+
+      .sidebar-section {
+        padding: $spacing-lg;
+        border-bottom: 1px solid $gray-200;
+
+        h3 {
+          font-size: 14px;
+          font-weight: 600;
+          color: $gray-900;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: $spacing-md;
+          display: flex;
+          align-items: center;
+          gap: $spacing-xs;
+        }
+
+        .layers-list {
+          display: flex;
+          flex-direction: column;
+          gap: $spacing-xs;
+
+          .layer-item {
+            padding: $spacing-sm $spacing-md;
+            border-radius: $border-radius-md;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: $spacing-sm;
+            transition: background 0.2s;
+
+            &:hover {
+              background: $gray-50;
+            }
+
+            &.active {
+              background: rgba($primary-color, 0.1);
+              color: $primary-color;
+            }
+
+            .layer-icon {
+              font-size: 18px;
+            }
+
+            .layer-name {
+              font-size: 14px;
+            }
+          }
+        }
+
+        .locations-list {
+          display: flex;
+          flex-direction: column;
+          gap: $spacing-xs;
+
+          .location-item {
+            padding: $spacing-sm $spacing-md;
+            border-radius: $border-radius-sm;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: $spacing-sm;
+            font-size: 14px;
+            color: $gray-700;
+            transition: all 0.2s;
+
+            &:hover {
+              background: $gray-50;
+              color: $primary-color;
+            }
+          }
+        }
+
+        .tools-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: $spacing-sm;
+
+          .tool-button {
+            @include button-base;
+            background: $gray-50;
+            border: 1px solid $gray-300;
+            color: $gray-700;
+            padding: $spacing-md;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            &:hover {
+              background: $gray-100;
+              color: $primary-color;
+            }
+          }
+        }
+      }
+    }
+
+    .gis-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: $gray-50;
+
+      .map-container {
+        flex: 1;
+        position: relative;
+        background: #f0f0f0;
+
+        .map-placeholder {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+
+          .placeholder-content {
+            text-align: center;
+            color: $gray-700;
+
+            h2 {
+              font-size: 24px;
+              margin: $spacing-md 0;
+            }
+
+            p {
+              font-size: 14px;
+              margin: $spacing-xs 0;
+            }
+
+            .selected-info {
+              margin-top: $spacing-lg;
+              padding: $spacing-sm $spacing-md;
+              background: white;
+              border-radius: $border-radius-md;
+              display: inline-block;
+            }
+          }
+        }
+
+        .map-controls {
+          position: absolute;
+          top: $spacing-md;
+          right: $spacing-md;
+          display: flex;
+          flex-direction: column;
+          gap: $spacing-xs;
+          background: white;
+          padding: $spacing-xs;
+          border-radius: $border-radius-md;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+          .control-button {
+            @include button-base;
+            background: white;
+            border: 1px solid $gray-300;
+            color: $gray-700;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            &:hover {
+              background: $gray-50;
+            }
+          }
+
+          .zoom-level {
+            text-align: center;
+            font-size: 12px;
+            color: $gray-600;
+            padding: $spacing-xs 0;
+            border-top: 1px solid $gray-200;
+            border-bottom: 1px solid $gray-200;
+          }
+        }
+      }
+
+      .map-info {
+        background: white;
+        border-top: 1px solid $gray-200;
+        padding: $spacing-lg;
+
+        .info-card {
+          h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: $gray-900;
+            margin-bottom: $spacing-md;
+          }
+
+          .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: $spacing-md;
+
+            .info-item {
+              display: flex;
+              justify-content: space-between;
+              padding: $spacing-xs 0;
+              border-bottom: 1px solid $gray-100;
+
+              .info-label {
+                font-size: 14px;
+                color: $gray-600;
+              }
+
+              .info-value {
+                font-size: 14px;
+                font-weight: 500;
+                color: $gray-900;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Mobile responsiveness
+  @include responsive(sm) {
+    .gis-container {
+      flex-direction: column;
+
+      .gis-sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid $gray-200;
+      }
+    }
+  }
+}

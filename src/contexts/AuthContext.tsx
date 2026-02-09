@@ -37,12 +37,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
+        // Token exists, try to validate it and get user info
         const userData = await authService.validateToken(token);
-        setUser(userData);
+        if (userData) {
+          // Map backend user data to our User interface
+          setUser({
+            id: userData.id,
+            email: userData.email,
+            name: userData.username || userData.firstName || userData.email,
+            role: userData.role || 'User',
+            companyId: userData.companyId
+          });
+        }
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
+      // Only remove token if we got an authentication error
+      if (error?.response?.status === 401) {
+        localStorage.removeItem('token');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -50,9 +63,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const { user, token } = await authService.login(email, password);
-      localStorage.setItem('token', token);
-      setUser(user);
+      const response = await authService.login(email, password);
+      // The backend returns the token and user data
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+      }
+
+      // Map the user data from backend response
+      const userData = response.user || response;
+      setUser({
+        id: userData.id,
+        email: userData.email,
+        name: userData.username || userData.firstName || userData.email,
+        role: userData.role || 'User',
+        companyId: userData.companyId
+      });
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -72,9 +97,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (data: any) => {
     try {
-      const { user, token } = await authService.register(data);
-      localStorage.setItem('token', token);
-      setUser(user);
+      const response = await authService.register(data);
+      // Registration successful but no token yet (email verification required)
+      return response;
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;

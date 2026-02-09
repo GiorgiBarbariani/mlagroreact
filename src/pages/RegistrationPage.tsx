@@ -7,15 +7,17 @@ const RegistrationPage: React.FC = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
-    companyName: '',
     phone: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -28,8 +30,16 @@ const RegistrationPage: React.FC = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name) {
-      newErrors.name = 'სახელი აუცილებელია';
+    if (!formData.firstName) {
+      newErrors.firstName = 'სახელი აუცილებელია';
+    }
+
+    if (!formData.lastName) {
+      newErrors.lastName = 'გვარი აუცილებელია';
+    }
+
+    if (!formData.username) {
+      newErrors.username = 'მომხმარებლის სახელი აუცილებელია';
     }
 
     if (!formData.email) {
@@ -65,17 +75,37 @@ const RegistrationPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await register({
-        name: formData.name,
+      const response = await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        username: formData.username,
         email: formData.email,
         password: formData.password,
-        companyName: formData.companyName,
         phone: formData.phone
       });
-      navigate('/app/main-menu');
+
+      if (response.success) {
+        setSuccessMessage('რეგისტრაცია წარმატებით დასრულდა! გთხოვთ შეამოწმოთ თქვენი ელ.ფოსტა.');
+        // Store email for verification page
+        const userEmail = formData.email;
+        // Clear form
+        setFormData({
+          firstName: '',
+          lastName: '',
+          username: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          phone: ''
+        });
+        // Redirect to email verification page after 1 second
+        setTimeout(() => {
+          navigate('/verify-email', { state: { email: userEmail } });
+        }, 1000);
+      }
     } catch (error: any) {
       setErrors({
-        general: error.response?.data?.message || 'რეგისტრაცია ვერ მოხერხდა. სცადეთ თავიდან.'
+        general: error.response?.data?.error || 'რეგისტრაცია ვერ მოხერხდა. სცადეთ თავიდან.'
       });
     } finally {
       setIsLoading(false);
@@ -93,24 +123,61 @@ const RegistrationPage: React.FC = () => {
           </div>
 
           <form className="registration-form" onSubmit={handleSubmit}>
+            {successMessage && (
+              <div className="success-message">{successMessage}</div>
+            )}
             {errors.general && (
               <div className="error-message">{errors.general}</div>
             )}
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="name">სახელი და გვარი *</label>
+                <label htmlFor="firstName">სახელი *</label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleChange}
-                  placeholder="შეიყვანეთ თქვენი სახელი"
-                  className={errors.name ? 'error' : ''}
+                  placeholder="შეიყვანეთ სახელი"
+                  className={errors.firstName ? 'error' : ''}
                 />
-                {errors.name && (
-                  <span className="field-error">{errors.name}</span>
+                {errors.firstName && (
+                  <span className="field-error">{errors.firstName}</span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="lastName">გვარი *</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  placeholder="შეიყვანეთ გვარი"
+                  className={errors.lastName ? 'error' : ''}
+                />
+                {errors.lastName && (
+                  <span className="field-error">{errors.lastName}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="username">მომხმარებლის სახელი *</label>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="მომხმარებლის სახელი"
+                  className={errors.username ? 'error' : ''}
+                />
+                {errors.username && (
+                  <span className="field-error">{errors.username}</span>
                 )}
               </div>
 
@@ -147,17 +214,6 @@ const RegistrationPage: React.FC = () => {
               )}
             </div>
 
-            <div className="form-group">
-              <label htmlFor="companyName">კომპანიის დასახელება</label>
-              <input
-                type="text"
-                id="companyName"
-                name="companyName"
-                value={formData.companyName}
-                onChange={handleChange}
-                placeholder="კომპანიის დასახელება (არასავალდებულო)"
-              />
-            </div>
 
             <div className="form-row">
               <div className="form-group">

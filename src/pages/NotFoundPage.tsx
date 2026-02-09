@@ -9,10 +9,10 @@ const NotFoundPage: React.FC = () => {
     <div className="not-found-page">
       <div className="not-found-content">
         <h1>404</h1>
-        <h2>Page Not Found</h2>
-        <p>The page you are looking for doesn't exist or has been moved.</p>
+        <h2>გვერდი არ მოიძებნა</h2>
+        <p>გვერდი, რომელსაც ეძებთ, არ არსებობს ან გადატანილია.</p>
         <button onClick={() => navigate('/')} className="btn-home">
-          Go to Home
+          მთავარი გვერდი
         </button>
       </div>
     </div>

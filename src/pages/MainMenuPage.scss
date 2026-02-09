@@ -1,0 +1,192 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.mainmenu-page {
+  padding: $spacing-xl;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  .menu-header {
+    text-align: center;
+    margin-bottom: $spacing-xl;
+
+    h1 {
+      font-size: 32px;
+      color: $gray-900;
+      margin-bottom: $spacing-sm;
+    }
+  }
+
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: $spacing-xl;
+
+    @include responsive(md) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include responsive(lg) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @include responsive(xl) {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .menu-card {
+    @include card;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: $border-radius-lg;
+    min-height: 200px;
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: -100px;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      opacity: 0.1;
+    }
+
+    &.yellow {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+
+      &::before {
+        background: #fbbf24;
+      }
+
+      .icon-wrapper {
+        background: rgba(251, 191, 36, 0.15);
+        color: #f59e0b;
+      }
+
+      h2 {
+        color: #92400e;
+      }
+    }
+
+    &.green {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+
+      &::before {
+        background: #34d399;
+      }
+
+      .icon-wrapper {
+        background: rgba(52, 211, 153, 0.15);
+        color: #10b981;
+      }
+
+      h2 {
+        color: #064e3b;
+      }
+    }
+
+    &.blue {
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+
+      &::before {
+        background: #60a5fa;
+      }
+
+      .icon-wrapper {
+        background: rgba(96, 165, 250, 0.15);
+        color: #3b82f6;
+      }
+
+      h2 {
+        color: #1e3a8a;
+      }
+    }
+
+    &.gray {
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+
+      &::before {
+        background: #9ca3af;
+      }
+
+      .icon-wrapper {
+        background: rgba(156, 163, 175, 0.15);
+        color: #6b7280;
+      }
+
+      h2 {
+        color: #374151;
+      }
+    }
+
+    .card-content {
+      padding: $spacing-xl;
+      position: relative;
+      z-index: 1;
+
+      .icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: $border-radius-md;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: $spacing-md;
+      }
+
+      h2 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: $spacing-sm;
+      }
+
+      .description {
+        font-size: 14px;
+        color: $gray-600;
+        line-height: 1.5;
+      }
+    }
+  }
+
+  // Mobile responsiveness
+  @include responsive(sm) {
+    padding: $spacing-md;
+
+    .menu-header {
+      h1 {
+        font-size: 24px;
+      }
+    }
+
+    .menu-grid {
+      grid-template-columns: 1fr;
+      gap: $spacing-md;
+    }
+
+    .menu-card {
+      min-height: 150px;
+
+      .card-content {
+        padding: $spacing-md;
+
+        .icon-wrapper {
+          width: 48px;
+          height: 48px;
+        }
+
+        h2 {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+}

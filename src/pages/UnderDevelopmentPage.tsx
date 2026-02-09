@@ -6,8 +6,8 @@ const UnderDevelopmentPage: React.FC = () => {
     <div className="under-development-page">
       <div className="under-development-content">
         <div className="icon">🚧</div>
-        <h1>Under Development</h1>
-        <p>This feature is currently being developed and will be available soon.</p>
+        <h1>დამუშავების პროცესში</h1>
+        <p>ეს ფუნქცია ამჟამად დამუშავების პროცესშია და მალე ხელმისაწვდომი იქნება.</p>
       </div>
     </div>
   );

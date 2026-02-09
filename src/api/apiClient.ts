@@ -33,8 +33,14 @@ class ApiClient {
       (error) => {
         if (error.response?.status === 401) {
           // Token expired or invalid
-          localStorage.removeItem('token');
-          window.location.href = '/login';
+          const currentPath = window.location.pathname;
+          // Don't redirect if already on auth pages
+          if (!currentPath.includes('/login') &&
+              !currentPath.includes('/register') &&
+              !currentPath.includes('/verify-email')) {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(error);
       }
