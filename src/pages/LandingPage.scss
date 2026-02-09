@@ -1,0 +1,178 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.landing-page {
+  .landing-header {
+    background: white;
+    box-shadow: $shadow-sm;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: $spacing-md $spacing-lg;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .logo h1 {
+        color: $primary-color;
+        margin: 0;
+      }
+
+      .landing-nav {
+        display: flex;
+        gap: $spacing-xl;
+
+        a {
+          color: $gray-700;
+          text-decoration: none;
+
+          &:hover {
+            color: $primary-color;
+          }
+        }
+      }
+
+      .auth-buttons {
+        display: flex;
+        gap: $spacing-md;
+
+        .btn-login {
+          @include button-base;
+          background: white;
+          color: $primary-color;
+          border: 1px solid $primary-color;
+        }
+
+        .btn-register {
+          @include button-base;
+          background: $primary-color;
+          color: white;
+        }
+      }
+    }
+  }
+
+  .hero {
+    margin-top: 80px;
+    padding: $spacing-xl * 2 0;
+    background: linear-gradient(135deg, rgba($primary-color, 0.1) 0%, rgba($secondary-color, 0.1) 100%);
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 $spacing-lg;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: $spacing-xl * 2;
+      align-items: center;
+
+      .hero-content {
+        h2 {
+          font-size: 48px;
+          color: $gray-900;
+          margin-bottom: $spacing-lg;
+        }
+
+        p {
+          font-size: 18px;
+          color: $gray-600;
+          margin-bottom: $spacing-xl;
+        }
+
+        .hero-actions {
+          display: flex;
+          gap: $spacing-md;
+
+          .btn-primary {
+            @include button-base;
+            background: $primary-color;
+            color: white;
+            padding: $spacing-md $spacing-xl;
+            font-size: 16px;
+          }
+
+          .btn-secondary {
+            @include button-base;
+            background: white;
+            color: $primary-color;
+            border: 1px solid $primary-color;
+            padding: $spacing-md $spacing-xl;
+            font-size: 16px;
+          }
+        }
+      }
+
+      .hero-image {
+        .placeholder-image {
+          @include flex-center;
+          @include card;
+          height: 400px;
+          background: white;
+          color: $gray-500;
+        }
+      }
+    }
+  }
+
+  .features {
+    padding: $spacing-xl * 3 0;
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 $spacing-lg;
+
+      h3 {
+        font-size: 36px;
+        text-align: center;
+        margin-bottom: $spacing-xl * 2;
+        color: $gray-900;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: $spacing-xl;
+
+        .feature-card {
+          @include card;
+          text-align: center;
+
+          .feature-icon {
+            font-size: 48px;
+            margin-bottom: $spacing-md;
+          }
+
+          h4 {
+            color: $gray-900;
+            margin-bottom: $spacing-sm;
+          }
+
+          p {
+            color: $gray-600;
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+
+  .landing-footer {
+    background: $gray-900;
+    color: white;
+    padding: $spacing-lg 0;
+    text-align: center;
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 $spacing-lg;
+    }
+  }
+}

@@ -1,0 +1,141 @@
+@import '../../styles/variables';
+
+.app-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: $header-height;
+  background: white;
+  box-shadow: $shadow-sm;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 $spacing-lg;
+  z-index: 100;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: $spacing-lg;
+
+    .menu-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: $spacing-sm;
+      display: flex;
+      align-items: center;
+      color: $gray-700;
+
+      &:hover {
+        color: $primary-color;
+      }
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: $gray-100;
+      border-radius: $border-radius-sm;
+      padding: $spacing-sm $spacing-md;
+      width: 300px;
+
+      svg {
+        color: $gray-500;
+        margin-right: $spacing-sm;
+      }
+
+      input {
+        border: none;
+        background: none;
+        outline: none;
+        flex: 1;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: $spacing-lg;
+
+    .header-icon {
+      position: relative;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: $spacing-sm;
+      color: $gray-700;
+
+      &:hover {
+        color: $primary-color;
+      }
+
+      .notification-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: $error-color;
+        color: white;
+        font-size: 10px;
+        padding: 2px 5px;
+        border-radius: 10px;
+        min-width: 18px;
+        text-align: center;
+      }
+    }
+
+    .user-menu {
+      position: relative;
+
+      .user-menu-toggle {
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: $spacing-sm $spacing-md;
+        border-radius: $border-radius-sm;
+        color: $gray-700;
+
+        &:hover {
+          background: $gray-100;
+        }
+      }
+
+      .user-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: $spacing-sm;
+        background: white;
+        box-shadow: $shadow-md;
+        border-radius: $border-radius-md;
+        min-width: 150px;
+        display: none;
+        flex-direction: column;
+
+        a, button {
+          padding: $spacing-sm $spacing-md;
+          text-decoration: none;
+          color: $gray-700;
+          background: none;
+          border: none;
+          text-align: left;
+          cursor: pointer;
+
+          &:hover {
+            background: $gray-100;
+          }
+        }
+      }
+
+      &:hover .user-dropdown {
+        display: flex;
+      }
+    }
+  }
+}

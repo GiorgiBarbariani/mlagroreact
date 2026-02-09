@@ -1,0 +1,32 @@
+@import '../styles/variables';
+
+.main-layout {
+  display: flex;
+  min-height: 100vh;
+  background: $gray-100;
+
+  &.sidebar-open {
+    .main-content {
+      margin-left: $sidebar-width;
+    }
+  }
+
+  &.sidebar-closed {
+    .main-content {
+      margin-left: 60px;
+    }
+  }
+
+  .main-content {
+    flex: 1;
+    transition: margin-left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+
+    .content-area {
+      flex: 1;
+      padding: $spacing-lg;
+      margin-top: $header-height;
+    }
+  }
+}

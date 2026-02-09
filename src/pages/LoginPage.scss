@@ -1,0 +1,150 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba($primary-color, 0.1) 0%, rgba($secondary-color, 0.1) 100%);
+
+  .login-container {
+    width: 100%;
+    max-width: 400px;
+    padding: $spacing-lg;
+
+    .login-card {
+      @include card;
+      background: white;
+
+      .login-header {
+        text-align: center;
+        margin-bottom: $spacing-xl;
+
+        h1 {
+          color: $primary-color;
+          font-size: 32px;
+          margin-bottom: $spacing-sm;
+        }
+
+        h2 {
+          color: $gray-900;
+          font-size: 24px;
+          margin-bottom: $spacing-xs;
+        }
+
+        p {
+          color: $gray-600;
+          font-size: 14px;
+        }
+      }
+
+      .login-form {
+        .error-message {
+          background: rgba($error-color, 0.1);
+          color: $error-color;
+          padding: $spacing-sm $spacing-md;
+          border-radius: $border-radius-sm;
+          margin-bottom: $spacing-md;
+          font-size: 14px;
+        }
+
+        .form-group {
+          margin-bottom: $spacing-lg;
+
+          label {
+            display: block;
+            margin-bottom: $spacing-xs;
+            color: $gray-700;
+            font-size: 14px;
+            font-weight: 500;
+          }
+
+          input {
+            width: 100%;
+            padding: $spacing-sm $spacing-md;
+            border: 1px solid $gray-300;
+            border-radius: $border-radius-sm;
+            font-size: 14px;
+
+            &:focus {
+              outline: none;
+              border-color: $primary-color;
+            }
+
+            &.error {
+              border-color: $error-color;
+            }
+          }
+
+          .field-error {
+            color: $error-color;
+            font-size: 12px;
+            margin-top: $spacing-xs;
+            display: block;
+          }
+        }
+
+        .form-options {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: $spacing-lg;
+
+          .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: $spacing-xs;
+            color: $gray-700;
+            font-size: 14px;
+
+            input[type="checkbox"] {
+              margin: 0;
+            }
+          }
+
+          a {
+            color: $primary-color;
+            text-decoration: none;
+            font-size: 14px;
+
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        }
+
+        .btn-submit {
+          @include button-base;
+          width: 100%;
+          background: $primary-color;
+          color: white;
+          padding: $spacing-md;
+          font-size: 16px;
+        }
+      }
+
+      .login-footer {
+        margin-top: $spacing-xl;
+        text-align: center;
+        padding-top: $spacing-lg;
+        border-top: 1px solid $gray-200;
+
+        p {
+          color: $gray-600;
+          font-size: 14px;
+
+          a {
+            color: $primary-color;
+            text-decoration: none;
+            font-weight: 500;
+
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+  }
+}

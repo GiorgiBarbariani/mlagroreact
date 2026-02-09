@@ -1,0 +1,36 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.not-found-page {
+  @include flex-center;
+  min-height: 100vh;
+  background: $gray-100;
+
+  .not-found-content {
+    text-align: center;
+
+    h1 {
+      font-size: 120px;
+      color: $primary-color;
+      margin-bottom: $spacing-md;
+    }
+
+    h2 {
+      font-size: 32px;
+      color: $gray-900;
+      margin-bottom: $spacing-md;
+    }
+
+    p {
+      color: $gray-600;
+      margin-bottom: $spacing-xl;
+    }
+
+    .btn-home {
+      @include button-base;
+      background: $primary-color;
+      color: white;
+      padding: $spacing-md $spacing-xl;
+    }
+  }
+}

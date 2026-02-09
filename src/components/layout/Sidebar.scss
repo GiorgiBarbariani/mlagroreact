@@ -1,0 +1,108 @@
+@import '../../styles/variables';
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background: white;
+  box-shadow: $shadow-sm;
+  transition: width 0.3s ease;
+  z-index: 101;
+  overflow-y: auto;
+
+  &.open {
+    width: $sidebar-width;
+  }
+
+  &.closed {
+    width: 60px;
+
+    .sidebar-header h2 {
+      display: none;
+    }
+
+    .nav-item span {
+      display: none;
+    }
+
+    .section-title {
+      display: none;
+    }
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $spacing-lg;
+    border-bottom: 1px solid $gray-200;
+    height: $header-height;
+
+    h2 {
+      color: $primary-color;
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .sidebar-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: $gray-600;
+      padding: $spacing-xs;
+
+      &:hover {
+        color: $primary-color;
+      }
+    }
+  }
+
+  .sidebar-nav {
+    padding: $spacing-md;
+
+    .nav-section {
+      margin-bottom: $spacing-lg;
+
+      .section-title {
+        color: $gray-500;
+        font-size: 12px;
+        text-transform: uppercase;
+        margin: $spacing-md 0;
+        padding: 0 $spacing-sm;
+      }
+
+      &.admin-section {
+        border-top: 1px solid $gray-200;
+        padding-top: $spacing-lg;
+      }
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: $spacing-md;
+      padding: $spacing-sm $spacing-md;
+      margin: $spacing-xs 0;
+      color: $gray-700;
+      text-decoration: none;
+      border-radius: $border-radius-sm;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: $gray-100;
+        color: $primary-color;
+      }
+
+      &.active {
+        background: rgba($primary-color, 0.1);
+        color: $primary-color;
+        font-weight: 500;
+      }
+
+      svg {
+        flex-shrink: 0;
+      }
+    }
+  }
+}

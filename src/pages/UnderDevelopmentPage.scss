@@ -1,0 +1,27 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.under-development-page {
+  @include flex-center;
+  min-height: calc(100vh - #{$header-height});
+
+  .under-development-content {
+    text-align: center;
+
+    .icon {
+      font-size: 64px;
+      margin-bottom: $spacing-lg;
+    }
+
+    h1 {
+      font-size: 32px;
+      color: $gray-900;
+      margin-bottom: $spacing-md;
+    }
+
+    p {
+      color: $gray-600;
+      font-size: 16px;
+    }
+  }
+}
