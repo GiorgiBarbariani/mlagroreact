@@ -5,9 +5,6 @@ import {
   Search,
   Edit2,
   Trash2,
-  MapPin,
-  Maximize2,
-  Grid3X3,
   ChevronLeft,
   ChevronRight,
   Save,
@@ -22,7 +19,7 @@ interface Field {
   id: string;
   name: string;
   area: number;
-  crop: string;
+  crop?: string;
   coordinates: string;
   polygonData?: any;
   companyId?: string;
@@ -52,8 +49,8 @@ const MyFieldsPage: React.FC = () => {
   const mapRef = useRef<LeafletMapRef>(null);
 
   // Map state
-  const [mapCenter, setMapCenter] = useState<[number, number]>([41.7151, 44.8271]);
-  const [mapZoom, setMapZoom] = useState(7);
+  const mapCenter: [number, number] = [41.7151, 44.8271];
+  const mapZoom = 7;
   const [currentDrawnArea, setCurrentDrawnArea] = useState(0);
   const [currentDrawnCoordinates, setCurrentDrawnCoordinates] = useState<any[]>([]);
 
@@ -70,7 +67,6 @@ const MyFieldsPage: React.FC = () => {
 
   // Cadastral search state
   const [cadastralSearchQuery, setCadastralSearchQuery] = useState('');
-  const [showCadastralSearch, setShowCadastralSearch] = useState(false);
   const [selectedCadastralCode, setSelectedCadastralCode] = useState<string>('');
   const [selectedCadastralArea, setSelectedCadastralArea] = useState<number>(0);
 
@@ -83,13 +79,22 @@ const MyFieldsPage: React.FC = () => {
     // Only load fields if we have a user with companyId
     if (user?.companyId) {
       loadFields();
-    } else if (user) {
-      // User exists but no companyId
-      console.warn('User exists but has no companyId:', user);
+    } else if (user && user.role === 'Company') {
+      // User is a Company but no companyId yet - try to ensure company
+      console.log('Company user without companyId, calling ensureCompany...');
+      import('../services/authService').then(({ authService }) => {
+        authService.ensureCompany().then(response => {
+          console.log('Company ensured:', response);
+          // Reload the page to get updated user data
+          window.location.reload();
+        }).catch(error => {
+          console.error('Failed to ensure company:', error);
+        });
+      });
     }
 
     // Test cadastral service
-    import('../utils/testCadastral').then(module => {
+    import('../utils/testCadastral').then(() => {
       console.log('Cadastral service test started - check console for results');
     });
   }, [user]); // Re-run when user changes
@@ -137,7 +142,7 @@ const MyFieldsPage: React.FC = () => {
     if (searchTerm.trim()) {
       const filtered = fields.filter(field =>
         field.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        field.crop.toLowerCase().includes(searchTerm.toLowerCase())
+        (field.crop || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredFields(filtered);
     } else {
@@ -366,15 +371,15 @@ const MyFieldsPage: React.FC = () => {
 
           {/* Fields List Panel */}
           <div className={`fields-panel ${fieldsPanelCollapsed ? 'collapsed' : ''}`}>
+            <button
+              className="panel-toggle-trigger"
+              onClick={toggleFieldsPanel}
+              title={fieldsPanelCollapsed ? 'გაშლა' : 'აკეცვა'}
+            >
+              {fieldsPanelCollapsed ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+            </button>
             <div className="fields-panel-header">
-              <h3>ჩემი მინდვრების სია</h3>
-              <button
-                className="toggle-panel-btn"
-                onClick={toggleFieldsPanel}
-                title={fieldsPanelCollapsed ? 'გაშლა' : 'აკეცვა'}
-              >
-                {fieldsPanelCollapsed ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-              </button>
+              {!fieldsPanelCollapsed && <h3>ჩემი მინდვრების სია</h3>}
             </div>
 
             <div className="fields-content" style={{ display: fieldsPanelCollapsed ? 'none' : 'block' }}>
@@ -399,7 +404,7 @@ const MyFieldsPage: React.FC = () => {
                     type="text"
                     value={cadastralSearchQuery}
                     onChange={(e) => setCadastralSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleCadastralSearch()}
+                    onKeyDown={(e) => e.key === 'Enter' && handleCadastralSearch()}
                     placeholder="XX.XX.XX.XXX"
                     className="cadastral-input"
                   />

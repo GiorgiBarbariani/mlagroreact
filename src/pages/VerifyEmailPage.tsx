@@ -95,12 +95,15 @@ const VerifyEmailPage: React.FC = () => {
       if (response.data.success) {
         setSuccessMessage('ელ.ფოსტა წარმატებით დადასტურდა!');
 
-        // Store token and login
+        // Store token and companyId
         if (response.data.token) {
           localStorage.setItem('token', response.data.token);
 
-          // If we have user data, we can update the auth context
-          // but since we're navigating away, the app will reload auth state anyway
+          // Also store companyId if available
+          if (response.data.companyId) {
+            localStorage.setItem('companyId', response.data.companyId);
+            console.log('Company ID stored:', response.data.companyId);
+          }
 
           // Redirect to main app
           setTimeout(() => {

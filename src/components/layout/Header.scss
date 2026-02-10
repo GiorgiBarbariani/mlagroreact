@@ -117,6 +117,11 @@
         min-width: 150px;
         display: none;
         flex-direction: column;
+        z-index: 1000;
+
+        &.show {
+          display: flex;
+        }
 
         a, button {
           padding: $spacing-sm $spacing-md;
@@ -126,15 +131,12 @@
           border: none;
           text-align: left;
           cursor: pointer;
+          transition: background 0.2s ease;
 
           &:hover {
             background: $gray-100;
           }
         }
-      }
-
-      &:hover .user-dropdown {
-        display: flex;
       }
     }
   }

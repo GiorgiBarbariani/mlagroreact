@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { Bell, Menu, Search, User } from 'lucide-react';
 import './Header.scss';
@@ -9,6 +9,22 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const { user, logout } = useAuth();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <header className="app-header">
@@ -26,15 +42,21 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           <Bell size={20} />
           <span className="notification-badge">3</span>
         </button>
-        <div className="user-menu">
-          <button className="user-menu-toggle">
+        <div className="user-menu" ref={dropdownRef}>
+          <button
+            className="user-menu-toggle"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          >
             <User size={20} />
             <span>{user?.name || 'მომხმარებელი'}</span>
           </button>
-          <div className="user-dropdown">
+          <div className={`user-dropdown ${isDropdownOpen ? 'show' : ''}`}>
             <a href="/app/profile">პროფილი</a>
             <a href="/app/settings">პარამეტრები</a>
-            <button onClick={logout}>გასვლა</button>
+            <button onClick={() => {
+              logout();
+              setIsDropdownOpen(false);
+            }}>გასვლა</button>
           </div>
         </div>
       </div>

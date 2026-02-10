@@ -66,8 +66,45 @@
         &.collapsed {
           width: 48px;
 
+          .fields-panel-header {
+            padding: 0;
+            border-bottom: none;
+          }
+
           .fields-content {
             display: none;
+          }
+        }
+
+        // Toggle trigger button - always visible
+        .panel-toggle-trigger {
+          position: absolute;
+          left: -20px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: white;
+          border: 1px solid $gray-300;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          z-index: 10;
+          color: $gray-600;
+
+          &:hover {
+            background: $primary-color;
+            color: white;
+            border-color: $primary-color;
+            transform: translateY(-50%) scale(1.1);
+          }
+
+          &:active {
+            transform: translateY(-50%) scale(0.95);
           }
         }
 
@@ -83,17 +120,6 @@
             font-weight: 600;
             color: $gray-900;
             margin: 0;
-          }
-
-          .toggle-panel-btn {
-            @include button-base;
-            background: transparent;
-            color: $gray-600;
-            padding: $spacing-xs;
-
-            &:hover {
-              color: $primary-color;
-            }
           }
         }
 
