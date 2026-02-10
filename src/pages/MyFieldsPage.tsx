@@ -14,7 +14,8 @@ import {
   X
 } from 'lucide-react';
 import { apiClient } from '../api/apiClient';
-import LeafletMap, { LeafletMapRef } from '../components/LeafletMap/LeafletMap';
+import LeafletMap, { type LeafletMapRef } from '../components/LeafletMap/LeafletMap';
+import { useAuth } from '../hooks/useAuth';
 import './MyFieldsPage.scss';
 
 interface Field {
@@ -39,6 +40,8 @@ interface FieldForm {
 }
 
 const MyFieldsPage: React.FC = () => {
+  const { user } = useAuth();
+
   // State management
   const [fields, setFields] = useState<Field[]>([]);
   const [filteredFields, setFilteredFields] = useState<Field[]>([]);
@@ -68,11 +71,28 @@ const MyFieldsPage: React.FC = () => {
   // Cadastral search state
   const [cadastralSearchQuery, setCadastralSearchQuery] = useState('');
   const [showCadastralSearch, setShowCadastralSearch] = useState(false);
+  const [selectedCadastralCode, setSelectedCadastralCode] = useState<string>('');
+  const [selectedCadastralArea, setSelectedCadastralArea] = useState<number>(0);
 
-  // Load fields on mount
+  // Load fields when user data changes
   useEffect(() => {
-    loadFields();
-  }, []);
+    // Debug: Check user data
+    console.log('Current user:', user);
+    console.log('User companyId:', user?.companyId);
+
+    // Only load fields if we have a user with companyId
+    if (user?.companyId) {
+      loadFields();
+    } else if (user) {
+      // User exists but no companyId
+      console.warn('User exists but has no companyId:', user);
+    }
+
+    // Test cadastral service
+    import('../utils/testCadastral').then(module => {
+      console.log('Cadastral service test started - check console for results');
+    });
+  }, [user]); // Re-run when user changes
 
   // Filter fields when search term changes
   useEffect(() => {
@@ -82,8 +102,24 @@ const MyFieldsPage: React.FC = () => {
   const loadFields = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/fields');
-      if (response.data) {
+
+      // Debug: Check user and companyId
+      console.log('Loading fields for user:', user);
+      console.log('Company ID:', user?.companyId);
+
+      if (!user?.companyId) {
+        console.warn('No company ID available for loading fields');
+        setFields([]);
+        setFilteredFields([]);
+        setLoading(false);
+        return;
+      }
+
+      const response = await apiClient.get(`/fields?companyId=${user.companyId}`);
+      if (response.data && response.data.data) {
+        setFields(response.data.data);
+        setFilteredFields(response.data.data);
+      } else if (response.data) {
         setFields(response.data);
         setFilteredFields(response.data);
       }
@@ -159,13 +195,29 @@ const MyFieldsPage: React.FC = () => {
       return;
     }
 
+    // Debug: Check user and companyId
+    console.log('Current user:', user);
+    console.log('Company ID:', user?.companyId);
+
+    if (!user?.companyId) {
+      alert('კომპანია ვერ მოიძებნა. გთხოვთ გადატვირთოთ გვერდი.');
+      return;
+    }
+
     try {
+      const fieldData = {
+        ...fieldForm,
+        companyId: user.companyId
+      };
+
+      console.log('Saving field with data:', fieldData);
+
       if (selectedField) {
         // Update existing field
-        await apiClient.put(`/fields/${selectedField.id}`, fieldForm);
+        await apiClient.put(`/fields/${selectedField.id}`, fieldData);
       } else {
         // Create new field
-        await apiClient.post('/fields', fieldForm);
+        await apiClient.post('/fields', fieldData);
       }
       await loadFields();
       closeFieldModal();
@@ -191,15 +243,26 @@ const MyFieldsPage: React.FC = () => {
       return;
     }
 
+    // Debug: Check user and companyId
+    console.log('Current user:', user);
+    console.log('Company ID:', user?.companyId);
+
+    if (!user?.companyId) {
+      alert('კომპანია ვერ მოიძებნა. გთხოვთ გადატვირთოთ გვერდი.');
+      return;
+    }
+
     try {
       const newField = {
         name: drawnFieldName.trim(),
         crop: 'უცნობი',
         area: currentDrawnArea,
         coordinates: formatCoordinatesForSaving(currentDrawnCoordinates),
-        polygonData: currentDrawnCoordinates
+        polygonData: currentDrawnCoordinates,
+        companyId: user.companyId
       };
 
+      console.log('Saving field with data:', newField);
       await apiClient.post('/fields', newField);
       await loadFields();
       cancelSaveField();
@@ -246,6 +309,18 @@ const MyFieldsPage: React.FC = () => {
     setShowSaveModal(true);
   };
 
+  const handleCadastralSearch = () => {
+    if (cadastralSearchQuery.trim() && mapRef.current) {
+      mapRef.current.searchCadastralCode(cadastralSearchQuery.trim());
+    }
+  };
+
+  const handleCadastralClick = (code: string, area: number) => {
+    setSelectedCadastralCode(code);
+    setSelectedCadastralArea(area);
+    setCadastralSearchQuery(code);
+  };
+
   // Crop types for dropdown
   const cropTypes = [
     'სიმინდი',
@@ -282,6 +357,7 @@ const MyFieldsPage: React.FC = () => {
               selectedField={selectedField}
               onFieldSelect={selectField}
               onAreaDrawn={handleAreaDrawn}
+              onCadastralClick={handleCadastralClick}
               center={mapCenter}
               zoom={mapZoom}
               enableDrawing={true}
@@ -323,13 +399,26 @@ const MyFieldsPage: React.FC = () => {
                     type="text"
                     value={cadastralSearchQuery}
                     onChange={(e) => setCadastralSearchQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleCadastralSearch()}
                     placeholder="XX.XX.XX.XXX"
                     className="cadastral-input"
                   />
-                  <button className="search-btn">
+                  <button
+                    className="search-btn"
+                    onClick={handleCadastralSearch}
+                    title="ძებნა"
+                  >
                     <Search size={18} />
                   </button>
                 </div>
+                {selectedCadastralCode && (
+                  <div className="cadastral-result">
+                    <p className="code-display">კოდი: <strong>{selectedCadastralCode}</strong></p>
+                    {selectedCadastralArea > 0 && (
+                      <p className="area-display">ფართობი: <strong>{(selectedCadastralArea / 10000).toFixed(2)} ჰა</strong></p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Search Bar */}

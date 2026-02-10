@@ -41,13 +41,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const userData = await authService.validateToken(token);
         if (userData) {
           // Map backend user data to our User interface
-          setUser({
+          const userObj = {
             id: userData.id,
             email: userData.email,
             name: userData.username || userData.firstName || userData.email,
             role: userData.role || 'User',
             companyId: userData.companyId
-          });
+          };
+
+          // If user doesn't have a company, ensure one is created
+          if (!userObj.companyId && (userData.role === 'Company' || userData.role === 'Admin')) {
+            try {
+              const companyResponse = await authService.ensureCompany();
+              if (companyResponse.companyId) {
+                userObj.companyId = companyResponse.companyId;
+              }
+            } catch (error) {
+              console.error('Failed to ensure company:', error);
+            }
+          }
+
+          setUser(userObj);
         }
       }
     } catch (error) {
@@ -71,13 +85,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Map the user data from backend response
       const userData = response.user || response;
-      setUser({
+      const userObj = {
         id: userData.id,
         email: userData.email,
         name: userData.username || userData.firstName || userData.email,
         role: userData.role || 'User',
         companyId: userData.companyId
-      });
+      };
+
+      // If user doesn't have a company, ensure one is created
+      if (!userObj.companyId && (userData.role === 'Company' || userData.role === 'Admin')) {
+        try {
+          const companyResponse = await authService.ensureCompany();
+          if (companyResponse.companyId) {
+            userObj.companyId = companyResponse.companyId;
+          }
+        } catch (error) {
+          console.error('Failed to ensure company:', error);
+        }
+      }
+
+      setUser(userObj);
     } catch (error) {
       console.error('Login failed:', error);
       throw error;

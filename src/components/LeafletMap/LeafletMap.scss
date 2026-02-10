@@ -54,3 +54,114 @@
     font-size: 16px;
   }
 }
+
+// City labels styling
+.city-label {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #8B4513;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+// Permanent city labels
+.city-label-regular,
+.city-label-capital {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  white-space: nowrap;
+
+  span {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'BPG Arial', 'Arial', sans-serif;
+    text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.8);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.city-label-regular span {
+  font-size: 11px;
+  font-weight: 500;
+  color: #333;
+  border: 1px solid #999;
+}
+
+.city-label-capital span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #8B0000;
+  border: 2px solid #8B0000;
+  background: rgba(255, 255, 255, 1);
+}
+
+// Region tooltip
+.region-tooltip {
+  background: rgba(139, 69, 19, 0.9);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+// Administrative boundaries control styling
+.leaflet-control-layers-overlays {
+  label {
+    font-size: 13px;
+  }
+}
+
+// Cadastral code labels
+.cadastral-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  white-space: nowrap;
+
+  span {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: #d32f2f;
+    border: 1px solid #d32f2f;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Hide labels at low zoom levels
+.leaflet-container {
+  .city-label-regular {
+    display: none;
+  }
+
+  &[data-zoom="8"],
+  &[data-zoom="9"],
+  &[data-zoom="10"],
+  &[data-zoom="11"],
+  &[data-zoom="12"],
+  &[data-zoom="13"],
+  &[data-zoom="14"],
+  &[data-zoom="15"],
+  &[data-zoom="16"],
+  &[data-zoom="17"],
+  &[data-zoom="18"],
+  &[data-zoom="19"],
+  &[data-zoom="20"] {
+    .city-label-regular {
+      display: flex;
+    }
+  }
+}

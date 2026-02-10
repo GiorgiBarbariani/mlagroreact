@@ -38,7 +38,8 @@ class AuthService {
       username: data.username,
       password: data.password,
       firstName: data.firstName,
-      lastName: data.lastName
+      lastName: data.lastName,
+      role: 'Company' // Always register as Company
     });
     return response.data;
   }
@@ -67,6 +68,16 @@ class AuthService {
 
   async verifyEmail(token: string): Promise<void> {
     await apiClient.post('/auth/verify-email', { token });
+  }
+
+  async ensureCompany(): Promise<{ companyId: string; company: any }> {
+    const token = localStorage.getItem('token');
+    const response = await apiClient.post('/auth/ensure-company', {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
   }
 }
 

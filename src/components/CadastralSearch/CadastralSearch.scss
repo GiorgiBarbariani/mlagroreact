@@ -1,0 +1,296 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.cadastral-search {
+  background: white;
+  border-radius: $border-radius-lg;
+  padding: $spacing-lg;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .search-header {
+    margin-bottom: $spacing-lg;
+
+    h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: $gray-900;
+      margin: 0 0 $spacing-md 0;
+    }
+
+    .search-mode-tabs {
+      display: flex;
+      gap: $spacing-xs;
+      border-bottom: 2px solid $gray-200;
+
+      .tab {
+        @include button-base;
+        background: transparent;
+        color: $gray-600;
+        padding: $spacing-sm $spacing-md;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        font-size: 14px;
+        transition: all 0.2s;
+
+        &:hover {
+          color: $primary-color;
+        }
+
+        &.active {
+          color: $primary-color;
+          font-weight: 600;
+          border-bottom-color: $primary-color;
+        }
+      }
+    }
+  }
+
+  .search-content {
+    .single-search {
+      .search-input-group {
+        display: flex;
+        gap: $spacing-sm;
+
+        .search-input {
+          flex: 1;
+          padding: $spacing-sm $spacing-md;
+          border: 1px solid $gray-300;
+          border-radius: $border-radius-md;
+          font-size: 14px;
+
+          &:focus {
+            outline: none;
+            border-color: $primary-color;
+          }
+        }
+
+        .search-btn,
+        .location-btn {
+          @include button-base;
+          padding: $spacing-sm $spacing-md;
+          background: $primary-color;
+          color: white;
+          border-radius: $border-radius-md;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 44px;
+
+          &:hover:not(:disabled) {
+            background: darken($primary-color, 10%);
+          }
+
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+
+          .spinning {
+            animation: spin 1s linear infinite;
+          }
+        }
+
+        .location-btn {
+          background: $success-color;
+
+          &:hover {
+            background: darken($success-color, 10%);
+          }
+        }
+      }
+    }
+
+    .area-search {
+      .coordinate-inputs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: $spacing-md;
+        margin-bottom: $spacing-md;
+
+        .coord-group {
+          display: flex;
+          flex-direction: column;
+          gap: $spacing-xs;
+
+          label {
+            font-size: 12px;
+            font-weight: 500;
+            color: $gray-700;
+          }
+
+          input {
+            padding: $spacing-sm;
+            border: 1px solid $gray-300;
+            border-radius: $border-radius-sm;
+            font-size: 14px;
+
+            &:focus {
+              outline: none;
+              border-color: $primary-color;
+            }
+          }
+        }
+      }
+    }
+
+    .batch-search {
+      .batch-input {
+        width: 100%;
+        padding: $spacing-md;
+        border: 1px solid $gray-300;
+        border-radius: $border-radius-md;
+        font-size: 14px;
+        font-family: monospace;
+        resize: vertical;
+        margin-bottom: $spacing-md;
+
+        &:focus {
+          outline: none;
+          border-color: $primary-color;
+        }
+      }
+    }
+
+    .search-btn-full {
+      @include button-base;
+      width: 100%;
+      padding: $spacing-sm $spacing-lg;
+      background: $primary-color;
+      color: white;
+      border-radius: $border-radius-md;
+      font-size: 14px;
+      font-weight: 500;
+
+      &:hover:not(:disabled) {
+        background: darken($primary-color, 10%);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    .error-message {
+      margin-top: $spacing-md;
+      padding: $spacing-sm $spacing-md;
+      background: rgba($error-color, 0.1);
+      border: 1px solid rgba($error-color, 0.3);
+      border-radius: $border-radius-md;
+      color: $error-color;
+      font-size: 14px;
+    }
+
+    .results-section {
+      margin-top: $spacing-lg;
+      border-top: 1px solid $gray-200;
+      padding-top: $spacing-lg;
+
+      .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: $spacing-md;
+
+        h4 {
+          font-size: 16px;
+          font-weight: 600;
+          color: $gray-900;
+          margin: 0;
+        }
+
+        .export-buttons {
+          display: flex;
+          gap: $spacing-sm;
+
+          .export-btn {
+            @include button-base;
+            padding: $spacing-xs $spacing-sm;
+            background: white;
+            color: $gray-700;
+            border: 1px solid $gray-300;
+            border-radius: $border-radius-sm;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: $spacing-xs;
+
+            &:hover {
+              background: $gray-50;
+              color: $primary-color;
+              border-color: $primary-color;
+            }
+          }
+        }
+      }
+
+      .results-list {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-sm;
+        max-height: 400px;
+        overflow-y: auto;
+
+        .result-item {
+          padding: $spacing-md;
+          background: $gray-50;
+          border: 1px solid $gray-200;
+          border-radius: $border-radius-md;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:hover {
+            background: white;
+            border-color: $primary-color;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          }
+
+          .parcel-info {
+            display: flex;
+            flex-direction: column;
+            gap: $spacing-xs;
+
+            strong {
+              font-size: 14px;
+              color: $primary-color;
+            }
+
+            span {
+              font-size: 12px;
+              color: $gray-600;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  // Responsive
+  @media (max-width: 768px) {
+    .search-header {
+      .search-mode-tabs {
+        flex-direction: column;
+
+        .tab {
+          width: 100%;
+          text-align: center;
+        }
+      }
+    }
+
+    .search-content {
+      .area-search {
+        .coordinate-inputs {
+          grid-template-columns: 1fr;
+        }
+      }
+    }
+  }
+}
