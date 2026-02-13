@@ -68,7 +68,7 @@ const CompanyPage: React.FC = () => {
     },
     {
       id: 'fields',
-      title: 'მინდვრების მართვა',
+      title: 'თანამშრომლების ჩატი',
       icon: Map,
       color: 'green',
       path: '/app/company/chat',

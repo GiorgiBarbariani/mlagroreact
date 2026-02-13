@@ -328,7 +328,7 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
           cadastralNumbersLayer.addTo(map);
         }
       } catch (error) {
-        console.log('Could not load cadastral codes:', error);
+        // Silently fail - cadastral API may be unavailable
       }
     };
 
@@ -473,34 +473,8 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
       }
     });
 
-    // Load and add regional boundaries with better styling
-    const regionBoundariesUrl = 'https://raw.githubusercontent.com/bumbeishvili/Assets/master/geojson/georgia/regions.json';
-
-    fetch(regionBoundariesUrl)
-      .then(response => response.json())
-      .then(data => {
-        L.geoJSON(data, {
-          style: {
-            color: '#8B4513',
-            weight: 2,
-            opacity: 0.8,
-            fillColor: 'transparent',
-            fillOpacity: 0,
-            dashArray: '10, 5'
-          },
-          onEachFeature: (feature, layer) => {
-            if (feature.properties && feature.properties.NAME_1) {
-              // Add region name as tooltip
-              layer.bindTooltip(feature.properties.NAME_1, {
-                permanent: false,
-                direction: 'center',
-                className: 'region-tooltip'
-              });
-            }
-          }
-        }).addTo(map);
-      })
-      .catch(error => console.log('Using fallback boundaries'));
+    // Regional boundaries - disabled due to external API unavailability
+    // The external GitHub asset is no longer available
 
     // Handle map clicks for cadastral info
     map.on('click', async (e: L.LeafletMouseEvent) => {

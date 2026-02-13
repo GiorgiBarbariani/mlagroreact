@@ -26,7 +26,6 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const menuItems = [
     { path: '/app/main-menu', label: 'მთავარი მენიუ', icon: Home },
-    { path: '/app/dashboard', label: 'სამუშაო პანელი', icon: BarChart },
     { path: '/app/electronic-field-map', label: 'მინდვრების რუკა', icon: Map },
     { path: '/app/my-fields', label: 'ჩემი მინდვრები', icon: Layers },
     { path: '/app/weather', label: 'ამინდი', icon: Cloud },

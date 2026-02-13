@@ -45,7 +45,7 @@ class CadastralService {
 
       return null;
     } catch (error) {
-      console.error('Error searching cadastral code:', error);
+      // Silently fail - external cadastral API may be unavailable or blocked by CORS
       return null;
     }
   }
@@ -81,7 +81,7 @@ class CadastralService {
 
       return [];
     } catch (error) {
-      console.error('Error fetching cadastral parcels:', error);
+      // Silently fail - external cadastral API may be unavailable or blocked by CORS
       return [];
     }
   }
@@ -115,7 +115,7 @@ class CadastralService {
 
       return null;
     } catch (error) {
-      console.error('Error fetching parcel at location:', error);
+      // Silently fail - external cadastral API may be unavailable or blocked by CORS
       return null;
     }
   }
@@ -144,7 +144,7 @@ class CadastralService {
 
       return [];
     } catch (error) {
-      console.error('Error fetching parcels by municipality:', error);
+      // Silently fail - external cadastral API may be unavailable or blocked by CORS
       return [];
     }
   }
@@ -174,7 +174,7 @@ class CadastralService {
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       } catch (error) {
-        console.error('Error in batch processing:', error);
+        // Silently fail batch processing
       }
     }
 

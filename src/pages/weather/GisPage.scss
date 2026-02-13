@@ -41,225 +41,141 @@
     display: flex;
     overflow: hidden;
 
-    .gis-sidebar {
-      width: 280px;
-      background: white;
-      border-right: 1px solid $gray-200;
-      overflow-y: auto;
-
-      .sidebar-section {
-        padding: $spacing-lg;
-        border-bottom: 1px solid $gray-200;
-
-        h3 {
-          font-size: 14px;
-          font-weight: 600;
-          color: $gray-900;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin-bottom: $spacing-md;
-          display: flex;
-          align-items: center;
-          gap: $spacing-xs;
-        }
-
-        .layers-list {
-          display: flex;
-          flex-direction: column;
-          gap: $spacing-xs;
-
-          .layer-item {
-            padding: $spacing-sm $spacing-md;
-            border-radius: $border-radius-md;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: $spacing-sm;
-            transition: background 0.2s;
-
-            &:hover {
-              background: $gray-50;
-            }
-
-            &.active {
-              background: rgba($primary-color, 0.1);
-              color: $primary-color;
-            }
-
-            .layer-icon {
-              font-size: 18px;
-            }
-
-            .layer-name {
-              font-size: 14px;
-            }
-          }
-        }
-
-        .locations-list {
-          display: flex;
-          flex-direction: column;
-          gap: $spacing-xs;
-
-          .location-item {
-            padding: $spacing-sm $spacing-md;
-            border-radius: $border-radius-sm;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: $spacing-sm;
-            font-size: 14px;
-            color: $gray-700;
-            transition: all 0.2s;
-
-            &:hover {
-              background: $gray-50;
-              color: $primary-color;
-            }
-          }
-        }
-
-        .tools-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: $spacing-sm;
-
-          .tool-button {
-            @include button-base;
-            background: $gray-50;
-            border: 1px solid $gray-300;
-            color: $gray-700;
-            padding: $spacing-md;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            &:hover {
-              background: $gray-100;
-              color: $primary-color;
-            }
-          }
-        }
-      }
-    }
-
     .gis-main {
       flex: 1;
       display: flex;
       flex-direction: column;
-      background: $gray-50;
 
       .map-container {
         flex: 1;
         position: relative;
         background: #f0f0f0;
+      }
+    }
 
-        .map-placeholder {
-          width: 100%;
-          height: 100%;
+    .gis-sidebar {
+      width: 300px;
+      background: white;
+      border-left: 1px solid $gray-200;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      .sidebar-header {
+        padding: $spacing-lg;
+        border-bottom: 1px solid $gray-200;
+
+        h3 {
+          font-size: 16px;
+          font-weight: 600;
+          color: $gray-900;
+          margin: 0;
           display: flex;
           align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+          gap: $spacing-sm;
+        }
+      }
 
-          .placeholder-content {
-            text-align: center;
-            color: $gray-700;
+      .fields-search {
+        padding: $spacing-md;
+        border-bottom: 1px solid $gray-200;
+        position: relative;
 
-            h2 {
-              font-size: 24px;
-              margin: $spacing-md 0;
-            }
-
-            p {
-              font-size: 14px;
-              margin: $spacing-xs 0;
-            }
-
-            .selected-info {
-              margin-top: $spacing-lg;
-              padding: $spacing-sm $spacing-md;
-              background: white;
-              border-radius: $border-radius-md;
-              display: inline-block;
-            }
-          }
+        .search-icon {
+          position: absolute;
+          left: $spacing-lg;
+          top: 50%;
+          transform: translateY(-50%);
+          color: $gray-400;
         }
 
-        .map-controls {
-          position: absolute;
-          top: $spacing-md;
-          right: $spacing-md;
-          display: flex;
-          flex-direction: column;
-          gap: $spacing-xs;
-          background: white;
-          padding: $spacing-xs;
+        .search-input {
+          width: 100%;
+          padding: $spacing-sm $spacing-md $spacing-sm 36px;
+          border: 1px solid $gray-300;
           border-radius: $border-radius-md;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          font-size: 14px;
+          outline: none;
+          transition: border-color 0.2s;
 
-          .control-button {
-            @include button-base;
-            background: white;
-            border: 1px solid $gray-300;
-            color: $gray-700;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            &:hover {
-              background: $gray-50;
-            }
+          &:focus {
+            border-color: $primary-color;
           }
 
-          .zoom-level {
-            text-align: center;
-            font-size: 12px;
-            color: $gray-600;
-            padding: $spacing-xs 0;
-            border-top: 1px solid $gray-200;
-            border-bottom: 1px solid $gray-200;
+          &::placeholder {
+            color: $gray-400;
           }
         }
       }
 
-      .map-info {
-        background: white;
-        border-top: 1px solid $gray-200;
-        padding: $spacing-lg;
+      .fields-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: $spacing-sm;
 
-        .info-card {
-          h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: $gray-900;
-            margin-bottom: $spacing-md;
+        .loading-state,
+        .empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: $spacing-xl;
+          color: $gray-500;
+          text-align: center;
+
+          p {
+            margin-top: $spacing-sm;
+            font-size: 14px;
+          }
+        }
+
+        .field-item {
+          padding: $spacing-md;
+          border-radius: $border-radius-md;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: $spacing-xs;
+          transition: all 0.2s;
+          border: 1px solid transparent;
+
+          &:hover {
+            background: $gray-50;
           }
 
-          .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: $spacing-md;
+          &.selected {
+            background: rgba($primary-color, 0.1);
+            border-color: $primary-color;
+          }
 
-            .info-item {
-              display: flex;
-              justify-content: space-between;
-              padding: $spacing-xs 0;
-              border-bottom: 1px solid $gray-100;
+          .field-info {
+            flex: 1;
+            min-width: 0;
 
-              .info-label {
-                font-size: 14px;
-                color: $gray-600;
-              }
-
-              .info-value {
-                font-size: 14px;
-                font-weight: 500;
-                color: $gray-900;
-              }
+            .field-name {
+              font-size: 14px;
+              font-weight: 500;
+              color: $gray-900;
+              margin: 0;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
             }
+
+            .field-crop {
+              font-size: 12px;
+              color: $gray-500;
+              margin: 4px 0 0 0;
+            }
+          }
+
+          .field-area {
+            font-size: 13px;
+            font-weight: 500;
+            color: $primary-color;
+            white-space: nowrap;
+            margin-left: $spacing-sm;
           }
         }
       }
@@ -269,13 +185,13 @@
   // Mobile responsiveness
   @include responsive(sm) {
     .gis-container {
-      flex-direction: column;
+      flex-direction: column-reverse;
 
       .gis-sidebar {
         width: 100%;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid $gray-200;
+        height: 200px;
+        border-left: none;
+        border-top: 1px solid $gray-200;
       }
     }
   }

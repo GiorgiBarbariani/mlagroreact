@@ -18,6 +18,8 @@ const GisPage = lazy(() => import('../pages/weather/GisPage'));
 const WeatherAnalyticsPage = lazy(() => import('../pages/weather/WeatherAnalyticsPage'));
 const DictionariesPage = lazy(() => import('../pages/DictionariesPage'));
 const ElectronicFieldMapPage = lazy(() => import('../pages/ElectronicFieldMapPage'));
+const ElectronicFieldMapFieldsPage = lazy(() => import('../pages/ElectronicFieldMapFieldsPage'));
+const ElectronicFieldMapFieldDetailPage = lazy(() => import('../pages/ElectronicFieldMapFieldDetailPage'));
 const CompanyPage = lazy(() => import('../pages/company/CompanyPage'));
 const EmployeeManagementPage = lazy(() => import('../pages/company/EmployeeManagementPage'));
 const CompanyTasksPage = lazy(() => import('../pages/company/CompanyTasksPage'));
@@ -92,6 +94,8 @@ export const AppRouter: React.FC = () => {
 
             {/* Electronic Field Map */}
             <Route path="electronic-field-map" element={<ElectronicFieldMapPage />} />
+            <Route path="electronic-field-map/fields" element={<ElectronicFieldMapFieldsPage />} />
+            <Route path="electronic-field-map/fields/:fieldId/:tab" element={<ElectronicFieldMapFieldDetailPage />} />
             <Route path="electronic-field-map/:page" element={<ElectronicFieldMapPage />} />
             <Route path="electronic-field-map/:page/:subpage" element={<ElectronicFieldMapPage />} />
 

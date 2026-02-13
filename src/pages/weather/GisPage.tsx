@@ -1,26 +1,100 @@
-import React, { useState } from 'react';
-import { ArrowLeft, MapPin, Layers, ZoomIn, ZoomOut, Download, Upload } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ArrowLeft, Map, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import LeafletMap, { type LeafletMapRef } from '../../components/LeafletMap/LeafletMap';
+import FieldWeatherModal from '../../components/FieldWeatherModal/FieldWeatherModal';
+import { apiClient } from '../../api/apiClient';
+import { useAuth } from '../../hooks/useAuth';
 import './GisPage.scss';
+
+interface Field {
+  id: string;
+  name: string;
+  area: number;
+  crop?: string;
+  coordinates: string;
+  polygonData?: any;
+}
 
 const GisPage: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedLayer, setSelectedLayer] = useState('satellite');
-  const [zoomLevel, setZoomLevel] = useState(10);
+  const { user } = useAuth();
+  const mapRef = useRef<LeafletMapRef>(null);
 
-  const layers = [
-    { id: 'satellite', name: 'სატელიტი', icon: '🛰️' },
-    { id: 'terrain', name: 'რელიეფი', icon: '⛰️' },
-    { id: 'weather', name: 'ამინდი', icon: '☁️' },
-    { id: 'fields', name: 'მინდვრები', icon: '🌾' }
-  ];
+  // State
+  const [fields, setFields] = useState<Field[]>([]);
+  const [filteredFields, setFilteredFields] = useState<Field[]>([]);
+  const [selectedField, setSelectedField] = useState<Field | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [showWeatherModal, setShowWeatherModal] = useState(false);
 
-  const handleZoomIn = () => {
-    if (zoomLevel < 20) setZoomLevel(zoomLevel + 1);
+  // Map center and zoom (Georgia)
+  const mapCenter: [number, number] = [41.7151, 44.8271];
+  const mapZoom = 7;
+
+  // Load fields
+  useEffect(() => {
+    if (user?.companyId) {
+      loadFields();
+    }
+  }, [user]);
+
+  // Filter fields when search changes
+  useEffect(() => {
+    if (searchTerm.trim()) {
+      const filtered = fields.filter(field =>
+        field.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (field.crop || '').toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredFields(filtered);
+    } else {
+      setFilteredFields(fields);
+    }
+  }, [searchTerm, fields]);
+
+  const loadFields = async () => {
+    try {
+      setLoading(true);
+      if (!user?.companyId) {
+        setFields([]);
+        setFilteredFields([]);
+        return;
+      }
+
+      const response = await apiClient.get(`/fields?companyId=${user.companyId}`);
+      if (response.data && response.data.data) {
+        setFields(response.data.data);
+        setFilteredFields(response.data.data);
+      } else if (response.data) {
+        setFields(response.data);
+        setFilteredFields(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading fields:', error);
+      setFields([]);
+      setFilteredFields([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleZoomOut = () => {
-    if (zoomLevel > 1) setZoomLevel(zoomLevel - 1);
+  const selectField = (field: Field) => {
+    setSelectedField(field);
+    setShowWeatherModal(true);
+    if (mapRef.current) {
+      mapRef.current.centerOnField(field);
+    }
+  };
+
+  const closeWeatherModal = () => {
+    setShowWeatherModal(false);
+  };
+
+  const handleAddPoint = (name: string) => {
+    console.log('Adding point:', name);
+    // TODO: Implement point saving logic
+    setShowWeatherModal(false);
   };
 
   return (
@@ -34,111 +108,75 @@ const GisPage: React.FC = () => {
       </div>
 
       <div className="gis-container">
-        <div className="gis-sidebar">
-          <div className="sidebar-section">
-            <h3>
-              <Layers size={18} />
-              <span>ფენები</span>
-            </h3>
-            <div className="layers-list">
-              {layers.map((layer) => (
-                <div
-                  key={layer.id}
-                  className={`layer-item ${selectedLayer === layer.id ? 'active' : ''}`}
-                  onClick={() => setSelectedLayer(layer.id)}
-                >
-                  <span className="layer-icon">{layer.icon}</span>
-                  <span className="layer-name">{layer.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="sidebar-section">
-            <h3>
-              <MapPin size={18} />
-              <span>მდებარეობები</span>
-            </h3>
-            <div className="locations-list">
-              <div className="location-item">
-                <MapPin size={14} />
-                <span>თბილისი</span>
-              </div>
-              <div className="location-item">
-                <MapPin size={14} />
-                <span>ბათუმი</span>
-              </div>
-              <div className="location-item">
-                <MapPin size={14} />
-                <span>ქუთაისი</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="sidebar-section">
-            <h3>ინსტრუმენტები</h3>
-            <div className="tools-grid">
-              <button className="tool-button" title="ატვირთვა">
-                <Upload size={18} />
-              </button>
-              <button className="tool-button" title="ჩამოტვირთვა">
-                <Download size={18} />
-              </button>
-            </div>
+        <div className="gis-main">
+          <div className="map-container">
+            <LeafletMap
+              ref={mapRef}
+              fields={fields}
+              selectedField={selectedField}
+              onFieldSelect={selectField}
+              onAreaDrawn={() => {}}
+              center={mapCenter}
+              zoom={mapZoom}
+              enableDrawing={false}
+            />
           </div>
         </div>
 
-        <div className="gis-main">
-          <div className="map-container">
-            {/* Map placeholder */}
-            <div className="map-placeholder">
-              <div className="placeholder-content">
-                <MapPin size={48} />
-                <h2>რუკა იტვირთება...</h2>
-                <p>აირჩიეთ ფენა და მდებარეობა რუკის სანახავად</p>
-                <p className="selected-info">
-                  არჩეული ფენა: <strong>{layers.find(l => l.id === selectedLayer)?.name}</strong>
-                </p>
-              </div>
-            </div>
-
-            {/* Map Controls */}
-            <div className="map-controls">
-              <button className="control-button" onClick={handleZoomIn}>
-                <ZoomIn size={20} />
-              </button>
-              <div className="zoom-level">{zoomLevel}x</div>
-              <button className="control-button" onClick={handleZoomOut}>
-                <ZoomOut size={20} />
-              </button>
-            </div>
+        <div className="gis-sidebar">
+          <div className="sidebar-header">
+            <h3>
+              <Map size={18} />
+              <span>ჩემი მინდვრები</span>
+            </h3>
           </div>
 
-          <div className="map-info">
-            <div className="info-card">
-              <h3>მიმდინარე ინფორმაცია</h3>
-              <div className="info-grid">
-                <div className="info-item">
-                  <span className="info-label">კოორდინატები:</span>
-                  <span className="info-value">41.7151° N, 44.8271° E</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">მასშტაბი:</span>
-                  <span className="info-value">1:{Math.pow(2, 20 - zoomLevel) * 1000}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">ფენა:</span>
-                  <span className="info-value">{layers.find(l => l.id === selectedLayer)?.name}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">თარიღი:</span>
-                  <span className="info-value">{new Date().toLocaleDateString('ka-GE')}</span>
-                </div>
+          <div className="fields-search">
+            <Search size={16} className="search-icon" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="ძებნა..."
+              className="search-input"
+            />
+          </div>
+
+          <div className="fields-list">
+            {loading ? (
+              <div className="loading-state">იტვირთება...</div>
+            ) : filteredFields.length === 0 ? (
+              <div className="empty-state">
+                <Map size={32} />
+                <p>მინდვრები არ მოიძებნა</p>
               </div>
-            </div>
+            ) : (
+              filteredFields.map(field => (
+                <div
+                  key={field.id}
+                  className={`field-item ${selectedField?.id === field.id ? 'selected' : ''}`}
+                  onClick={() => selectField(field)}
+                >
+                  <div className="field-info">
+                    <h4 className="field-name">{field.name}</h4>
+                    <p className="field-crop">{field.crop || 'არ არის მითითებული'}</p>
+                  </div>
+                  <span className="field-area">{field.area} ჰა</span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
+
+      {/* Weather Modal */}
+      {showWeatherModal && selectedField && (
+        <FieldWeatherModal
+          field={selectedField}
+          onClose={closeWeatherModal}
+          onAddPoint={handleAddPoint}
+        />
+      )}
     </div>
   );
 };
