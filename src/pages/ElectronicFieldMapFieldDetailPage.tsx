@@ -12,7 +12,11 @@ import {
   History,
   Layers,
   Save,
-  X
+  X,
+  Plus,
+  Download,
+  Trash2,
+  BarChart2
 } from 'lucide-react';
 import { apiClient } from '../api/apiClient';
 import { useAuth } from '../hooks/useAuth';
@@ -113,6 +117,20 @@ interface MenuItem {
   icon: React.ReactNode;
 }
 
+interface Season {
+  id: string;
+  fieldId: string;
+  cropId?: string;
+  cropName?: string;
+  crop?: string;
+  plantingDate?: string;
+  harvestDate?: string;
+  area?: number;
+  comment?: string;
+  year?: number;
+  status?: string;
+}
+
 const ElectronicFieldMapFieldDetailPage: React.FC = () => {
   const { fieldId } = useParams<{ fieldId: string }>();
   const navigate = useNavigate();
@@ -129,9 +147,18 @@ const ElectronicFieldMapFieldDetailPage: React.FC = () => {
   const [editForm, setEditForm] = useState<Partial<Field>>({});
   const [saving, setSaving] = useState(false);
 
+  // History/Seasons state
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [seasonsLoading, setSeasonsLoading] = useState(false);
+  const [showSeasonModal, setShowSeasonModal] = useState(false);
+  const [seasonForm, setSeasonForm] = useState<Partial<Season>>({});
+  const [editingSeasonId, setEditingSeasonId] = useState<string | null>(null);
+  const [savingSeason, setSavingSeason] = useState(false);
+  const [crops, setCrops] = useState<{ id: string; name: string; nameKa?: string }[]>([]);
+
   const menuItems: MenuItem[] = [
     { id: 'general', label: 'ზოგადი ინფორმაცია', icon: <FileText size={18} /> },
-    { id: 'history', label: 'კულტურის ისტორია', icon: <History size={18} /> },
+    { id: 'history', label: ' დანათესების ისტორია ', icon: <History size={18} /> },
     { id: 'soil-preparation', label: 'ნიადაგის მომზადება', icon: <Layers size={18} /> },
     { id: 'irrigation', label: 'ირიგაცია / მელიორაცია', icon: <Droplets size={18} /> },
     { id: 'fertilizers', label: 'სასუქები, პესტიციდები', icon: <Leaf size={18} /> },
@@ -153,6 +180,13 @@ const ElectronicFieldMapFieldDetailPage: React.FC = () => {
       loadField();
     }
   }, [fieldId, user?.companyId]);
+
+  useEffect(() => {
+    if (activeTab === 'history' && fieldId) {
+      loadSeasons();
+      loadCrops();
+    }
+  }, [activeTab, fieldId]);
 
   const loadField = async () => {
     if (!fieldId) return;
@@ -236,6 +270,134 @@ const ElectronicFieldMapFieldDetailPage: React.FC = () => {
       alert('შენახვა ვერ მოხერხდა');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const loadSeasons = async () => {
+    if (!fieldId) return;
+
+    setSeasonsLoading(true);
+    try {
+      // Try different endpoints for seasons data
+      let seasonsData: Season[] = [];
+
+      try {
+        const response = await apiClient.get(`/seasons/field/${fieldId}`);
+        seasonsData = response.data?.data || response.data || [];
+      } catch (err) {
+        console.log('Seasons endpoint failed, trying alternative');
+        try {
+          const response = await apiClient.get(`/fields/${fieldId}/seasons`);
+          seasonsData = response.data?.data || response.data || [];
+        } catch (err2) {
+          console.log('Alternative seasons endpoint also failed');
+        }
+      }
+
+      setSeasons(seasonsData);
+    } catch (error) {
+      console.error('Error loading seasons:', error);
+      setSeasons([]);
+    } finally {
+      setSeasonsLoading(false);
+    }
+  };
+
+  const loadCrops = async () => {
+    try {
+      const response = await apiClient.get('/dictionaries/crops');
+      const cropsData = response.data?.data || response.data || [];
+      setCrops(cropsData);
+    } catch (error) {
+      console.error('Error loading crops:', error);
+      setCrops([]);
+    }
+  };
+
+  const handleAddSeason = () => {
+    setSeasonForm({
+      fieldId: fieldId,
+      plantingDate: new Date().toISOString().split('T')[0]
+    });
+    setEditingSeasonId(null);
+    setShowSeasonModal(true);
+  };
+
+  const handleEditSeason = (season: Season) => {
+    setSeasonForm(season);
+    setEditingSeasonId(season.id);
+    setShowSeasonModal(true);
+  };
+
+  const handleDeleteSeason = async (seasonId: string) => {
+    if (!confirm('დარწმუნებული ხართ რომ გსურთ წაშლა?')) return;
+
+    try {
+      await apiClient.delete(`/seasons/${seasonId}`);
+      await loadSeasons();
+    } catch (error) {
+      console.error('Error deleting season:', error);
+      alert('წაშლა ვერ მოხერხდა');
+    }
+  };
+
+  const handleSaveSeason = async () => {
+    if (!fieldId || !seasonForm) return;
+
+    setSavingSeason(true);
+    try {
+      if (editingSeasonId) {
+        await apiClient.put(`/seasons/${editingSeasonId}`, {
+          ...seasonForm,
+          fieldId
+        });
+      } else {
+        await apiClient.post('/seasons', {
+          ...seasonForm,
+          fieldId
+        });
+      }
+      await loadSeasons();
+      setShowSeasonModal(false);
+      setSeasonForm({});
+      setEditingSeasonId(null);
+    } catch (error) {
+      console.error('Error saving season:', error);
+      alert('შენახვა ვერ მოხერხდა');
+    } finally {
+      setSavingSeason(false);
+    }
+  };
+
+  const handleExportSeasons = async () => {
+    try {
+      const response = await apiClient.post('/seasons/export', {
+        format: 'csv',
+        fieldId: fieldId,
+        seasonIds: seasons.map(s => s.id)
+      }, { responseType: 'blob' });
+
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `seasons_${fieldId}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('ექსპორტის შეცდომა');
+    }
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '-';
+    try {
+      return new Date(dateString).toLocaleDateString('ka-GE');
+    } catch {
+      return dateString;
     }
   };
 
@@ -333,6 +495,84 @@ const ElectronicFieldMapFieldDetailPage: React.FC = () => {
     </div>
   );
 
+  const renderHistoryContent = () => (
+    <div className="history-content">
+      <div className="card-container">
+        <div className="content-header">
+          <h2>დანათესების ისტორია</h2>
+          <div className="header-actions">
+            <button className="export-btn" onClick={handleExportSeasons}>
+              <Download size={16} />
+              ექსპორტი
+            </button>
+            <button className="add-btn" onClick={handleAddSeason}>
+              <Plus size={16} />
+              დამატება
+            </button>
+          </div>
+        </div>
+
+        {seasonsLoading ? (
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p>იტვირთება...</p>
+          </div>
+        ) : (
+          <div className="table-container">
+            <table className="seasons-table">
+              <thead>
+                <tr>
+                  <th>კულტურა</th>
+                  <th>დარგვის თარიღი</th>
+                  <th>ფართობი ჰა</th>
+                  <th>კომენტარი</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {seasons.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="empty-state">
+                      დანათესების ისტორია არ მოიძებნა
+                    </td>
+                  </tr>
+                ) : (
+                  seasons.map((season) => (
+                    <tr key={season.id}>
+                      <td className="crop-name">{season.cropName || season.crop || '-'}</td>
+                      <td className="planting-date">{formatDate(season.plantingDate)}</td>
+                      <td className="area">{season.area ? `${season.area} ჰა` : '-'}</td>
+                      <td className="comment">{season.comment || '-'}</td>
+                      <td className="actions">
+                        <button className="action-btn chart-btn" title="გრაფიკი">
+                          <BarChart2 size={16} />
+                        </button>
+                        <button
+                          className="action-btn edit-btn"
+                          onClick={() => handleEditSeason(season)}
+                          title="რედაქტირება"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          className="action-btn delete-btn"
+                          onClick={() => handleDeleteSeason(season.id)}
+                          title="წაშლა"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   const renderPlaceholderContent = (title: string) => (
     <div className="placeholder-content">
       <h2>{title}</h2>
@@ -348,7 +588,7 @@ const ElectronicFieldMapFieldDetailPage: React.FC = () => {
       case 'general':
         return renderGeneralContent();
       case 'history':
-        return renderPlaceholderContent('კულტურის ისტორია');
+        return renderHistoryContent();
       case 'soil-preparation':
         return renderPlaceholderContent('ნიადაგის მომზადება');
       case 'irrigation':
@@ -471,6 +711,87 @@ const ElectronicFieldMapFieldDetailPage: React.FC = () => {
               <button className="save-btn" onClick={handleSaveField} disabled={saving}>
                 <Save size={16} />
                 {saving ? 'ინახება...' : 'შენახვა'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Season Modal */}
+      {showSeasonModal && (
+        <div className="modal-overlay" onClick={() => setShowSeasonModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{editingSeasonId ? 'რედაქტირება' : 'დანათესის დამატება'}</h2>
+              <button className="modal-close" onClick={() => setShowSeasonModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>კულტურა</label>
+                <select
+                  value={seasonForm.cropId || ''}
+                  onChange={(e) => {
+                    const selectedCrop = crops.find(c => c.id === e.target.value);
+                    setSeasonForm({
+                      ...seasonForm,
+                      cropId: e.target.value,
+                      cropName: selectedCrop?.nameKa || selectedCrop?.name || ''
+                    });
+                  }}
+                >
+                  <option value="">აირჩიეთ კულტურა</option>
+                  {crops.map((crop) => (
+                    <option key={crop.id} value={crop.id}>
+                      {crop.nameKa || crop.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>დარგვის თარიღი</label>
+                <input
+                  type="date"
+                  value={seasonForm.plantingDate || ''}
+                  onChange={(e) => setSeasonForm({ ...seasonForm, plantingDate: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>მოსავლის აღების თარიღი</label>
+                <input
+                  type="date"
+                  value={seasonForm.harvestDate || ''}
+                  onChange={(e) => setSeasonForm({ ...seasonForm, harvestDate: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>ფართობი (ჰა)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={seasonForm.area || ''}
+                  onChange={(e) => setSeasonForm({ ...seasonForm, area: Number(e.target.value) })}
+                  placeholder="შეიყვანეთ ფართობი"
+                />
+              </div>
+              <div className="form-group">
+                <label>კომენტარი</label>
+                <textarea
+                  value={seasonForm.comment || ''}
+                  onChange={(e) => setSeasonForm({ ...seasonForm, comment: e.target.value })}
+                  placeholder="კომენტარი"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => setShowSeasonModal(false)}>
+                გაუქმება
+              </button>
+              <button className="save-btn" onClick={handleSaveSeason} disabled={savingSeason}>
+                <Save size={16} />
+                {savingSeason ? 'ინახება...' : 'შენახვა'}
               </button>
             </div>
           </div>

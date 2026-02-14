@@ -239,6 +239,187 @@
         }
       }
 
+      // History Content
+      .history-content {
+        padding: 0;
+
+        .card-container {
+          padding: $spacing-lg;
+          border: 1px solid $gray-200;
+          border-radius: $border-radius-lg;
+          margin: $spacing-lg;
+          background: white;
+
+          .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: $spacing-lg;
+
+            h2 {
+              font-size: 22px;
+              font-weight: 600;
+              margin: 0;
+              color: $gray-900;
+            }
+
+            .header-actions {
+              display: flex;
+              gap: $spacing-sm;
+
+              button {
+                @include button-base;
+                display: flex;
+                align-items: center;
+                gap: $spacing-xs;
+                padding: $spacing-sm $spacing-md;
+                font-size: 14px;
+                border-radius: $border-radius-md;
+
+                &.export-btn {
+                  background: white;
+                  border: 1px solid $gray-300;
+                  color: $gray-700;
+
+                  &:hover {
+                    background: $gray-50;
+                  }
+                }
+
+                &.add-btn {
+                  background: $gray-900;
+                  color: white;
+                  border: none;
+
+                  &:hover {
+                    background: $gray-800;
+                  }
+                }
+              }
+            }
+          }
+
+          .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: $spacing-xl * 2;
+
+            .spinner {
+              width: 40px;
+              height: 40px;
+              border: 3px solid $gray-200;
+              border-top-color: $primary-color;
+              border-radius: 50%;
+              animation: spin 1s linear infinite;
+            }
+
+            p {
+              margin-top: $spacing-md;
+              color: $gray-600;
+            }
+          }
+
+          .table-container {
+            overflow-x: auto;
+
+            .seasons-table {
+              width: 100%;
+              border-collapse: collapse;
+
+              thead {
+                tr {
+                  border-bottom: 1px solid $gray-200;
+
+                  th {
+                    text-align: left;
+                    padding: $spacing-md;
+                    font-size: 13px;
+                    font-weight: 500;
+                    color: $gray-600;
+                    background: $gray-50;
+
+                    &:last-child {
+                      width: 120px;
+                      text-align: right;
+                    }
+                  }
+                }
+              }
+
+              tbody {
+                tr {
+                  border-bottom: 1px solid $gray-100;
+                  transition: background 0.15s;
+
+                  &:hover {
+                    background: $gray-50;
+                  }
+
+                  &:last-child {
+                    border-bottom: none;
+                  }
+
+                  td {
+                    padding: $spacing-md;
+                    font-size: 14px;
+                    color: $gray-900;
+
+                    &.crop-name {
+                      font-weight: 500;
+                    }
+
+                    &.planting-date {
+                      color: $gray-600;
+                    }
+
+                    &.area {
+                      color: $gray-700;
+                    }
+
+                    &.comment {
+                      color: $gray-500;
+                      max-width: 200px;
+                      white-space: nowrap;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                    }
+
+                    &.actions {
+                      text-align: right;
+
+                      .action-btn {
+                        @include button-base;
+                        padding: $spacing-xs;
+                        background: transparent;
+                        border: none;
+                        color: $gray-500;
+                        margin-left: $spacing-xs;
+
+                        &:hover {
+                          color: $primary-color;
+                        }
+
+                        &.delete-btn:hover {
+                          color: #dc3545;
+                        }
+                      }
+                    }
+
+                    &.empty-state {
+                      text-align: center;
+                      padding: $spacing-xl * 2;
+                      color: $gray-500;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       // Placeholder Content
       .placeholder-content {
         padding: $spacing-lg;
