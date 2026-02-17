@@ -19,12 +19,21 @@ interface CadastralSearchOptions {
 }
 
 class CadastralService {
-  private baseUrl = 'https://maps.gov.ge/geoserver/napr';
+  // Use proxy in development to avoid CORS, direct URL won't work in production
+  private baseUrl = import.meta.env.DEV
+    ? '/api/cadastral'
+    : 'https://maps.gov.ge/geoserver/napr';
+
+  // Flag to enable/disable cadastral API calls (disabled in production due to CORS)
+  private enabled = import.meta.env.DEV;
 
   /**
    * Search for cadastral parcels by code
    */
   async searchByCadastralCode(code: string): Promise<CadastralParcel | null> {
+    // Skip API call in production (CORS blocked)
+    if (!this.enabled) return null;
+
     try {
       const url = `${this.baseUrl}/wfs`;
       const params = {
@@ -60,6 +69,9 @@ class CadastralService {
     maxLat: number,
     limit: number = 100
   ): Promise<CadastralParcel[]> {
+    // Skip API call in production (CORS blocked)
+    if (!this.enabled) return [];
+
     try {
       const bbox = `${minLng},${minLat},${maxLng},${maxLat}`;
       const url = `${this.baseUrl}/wfs`;
@@ -90,6 +102,9 @@ class CadastralService {
    * Get cadastral parcel at specific coordinates
    */
   async getParcelAtLocation(lat: number, lng: number): Promise<CadastralParcel | null> {
+    // Skip API call in production (CORS blocked)
+    if (!this.enabled) return null;
+
     try {
       // Create a small bounding box around the point
       const buffer = 0.0001; // About 11 meters
@@ -124,6 +139,9 @@ class CadastralService {
    * Get all cadastral codes in a municipality
    */
   async getParcelsByMunicipality(municipalityName: string, limit: number = 1000): Promise<CadastralParcel[]> {
+    // Skip API call in production (CORS blocked)
+    if (!this.enabled) return [];
+
     try {
       const url = `${this.baseUrl}/wfs`;
       const params = {
@@ -154,6 +172,9 @@ class CadastralService {
    */
   async batchFetchCadastralData(codes: string[]): Promise<Map<string, CadastralParcel>> {
     const results = new Map<string, CadastralParcel>();
+
+    // Skip API call in production (CORS blocked)
+    if (!this.enabled) return results;
 
     // Process in batches to avoid overwhelming the server
     const batchSize = 10;
