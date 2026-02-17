@@ -61,7 +61,7 @@ const ChatPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -423,14 +423,6 @@ const ChatPage: React.FC = () => {
     } else {
       return date.toLocaleDateString('ka-GE', { day: 'numeric', month: 'short' });
     }
-  };
-
-  const getFileIcon = (mimeType: string) => {
-    if (mimeType?.includes('pdf')) return 'pi-file-pdf';
-    if (mimeType?.includes('word') || mimeType?.includes('document')) return 'pi-file-word';
-    if (mimeType?.includes('excel') || mimeType?.includes('spreadsheet')) return 'pi-file-excel';
-    if (mimeType?.includes('zip') || mimeType?.includes('archive')) return 'pi-file-archive';
-    return 'pi-file';
   };
 
   const renderMessageStatus = (message: ChatMessage) => {

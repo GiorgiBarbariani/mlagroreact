@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Map,
-  Users,
   FileText,
   Calendar,
   Settings,
@@ -14,7 +13,6 @@ import {
   CheckCircle,
   Clock
 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../api/apiClient';
 import './ElectronicFieldMapPage.scss';
 
@@ -40,7 +38,6 @@ interface SystemStatus {
 
 const ElectronicFieldMapPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [fieldStats, setFieldStats] = useState<FieldStats>({
     totalFields: 0,
     totalArea: 0,

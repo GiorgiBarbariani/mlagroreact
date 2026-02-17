@@ -7,6 +7,15 @@ interface User {
   name: string;
   role: string;
   companyId?: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+interface RegisterResponse {
+  success: boolean;
+  message?: string;
+  userId?: string;
 }
 
 interface AuthContextType {
@@ -15,7 +24,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  register: (data: any) => Promise<void>;
+  register: (data: any) => Promise<RegisterResponse>;
   updateUser: (user: User) => void;
 }
 
@@ -38,7 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         // Token exists, try to validate it and get user info
-        const userData = await authService.validateToken(token);
+        const userData: any = await authService.validateToken(token);
         if (userData) {
           // Map backend user data to our User interface
           const userObj = {
@@ -64,7 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(userObj);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Auth check failed:', error);
       // Only remove token if we got an authentication error
       if (error?.response?.status === 401) {
@@ -77,14 +86,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await authService.login(email, password);
+      const response: any = await authService.login(email, password);
       // The backend returns the token and user data
       if (response.token) {
         localStorage.setItem('token', response.token);
       }
 
       // Map the user data from backend response
-      const userData = response.user || response;
+      const userData: any = response.user || response;
       const userObj = {
         id: userData.id,
         email: userData.email,
@@ -123,11 +132,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (data: any) => {
+  const register = async (data: any): Promise<RegisterResponse> => {
     try {
       const response = await authService.register(data);
       // Registration successful but no token yet (email verification required)
-      return response;
+      return response as RegisterResponse;
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;

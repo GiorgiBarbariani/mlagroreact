@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Plus,
   Download,
-  Upload,
   Edit2,
   Trash2,
   X,

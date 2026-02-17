@@ -36,18 +36,13 @@ class ChatService {
   private messageCallbacks: ((message: ChatMessage) => void)[] = [];
   private onlineUsersCallbacks: ((users: OnlineUser[]) => void)[] = [];
   private typingCallbacks: ((data: { from: string; isTyping: boolean }) => void)[] = [];
-  private pollingInterval: NodeJS.Timeout | null = null;
-  private currentUserId: string | null = null;
-  private currentUserName: string | null = null;
+  private pollingInterval: ReturnType<typeof setInterval> | null = null;
 
   // Initialize socket connection
   initSocket(userId: string, userName: string) {
     if (this.socket?.connected) {
       return;
     }
-
-    this.currentUserId = userId;
-    this.currentUserName = userName;
 
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7001';
     const socketUrl = apiUrl.replace('/api', '');
@@ -78,12 +73,12 @@ class ChatService {
         this.onlineUsersCallbacks.forEach(cb => cb(users));
       });
 
-      this.socket.on('user-online', (user: OnlineUser) => {
+      this.socket.on('user-online', (_user: OnlineUser) => {
         // Trigger refresh of online users
         this.socket?.emit('get-online-users');
       });
 
-      this.socket.on('user-offline', (user: OnlineUser) => {
+      this.socket.on('user-offline', (_user: OnlineUser) => {
         // Trigger refresh of online users
         this.socket?.emit('get-online-users');
       });

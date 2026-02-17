@@ -113,6 +113,20 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
+// Region labels styling
+.region-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 500;
+
+  span {
+    transition: all 0.2s ease;
+  }
+}
+
 // Administrative boundaries control styling
 .leaflet-control-layers-overlays {
   label {

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, Download, MapPin, Loader } from 'lucide-react';
-import { cadastralService, CadastralParcel } from '../../services/cadastralService';
+import { cadastralService, type CadastralParcel } from '../../services/cadastralService';
 import './CadastralSearch.scss';
 
 interface CadastralSearchProps {
@@ -8,7 +8,7 @@ interface CadastralSearchProps {
   onBulkExport?: (parcels: CadastralParcel[]) => void;
 }
 
-const CadastralSearch: React.FC<CadastralSearchProps> = ({ onParcelSelect, onBulkExport }) => {
+const CadastralSearch: React.FC<CadastralSearchProps> = ({ onParcelSelect, onBulkExport: _onBulkExport }) => {
   const [searchMode, setSearchMode] = useState<'single' | 'area' | 'batch'>('single');
   const [searchQuery, setSearchQuery] = useState('');
   const [batchCodes, setBatchCodes] = useState('');
@@ -173,7 +173,7 @@ const CadastralSearch: React.FC<CadastralSearchProps> = ({ onParcelSelect, onBul
             setLoading(false);
           }
         },
-        (error) => {
+        (_error) => {
           setError('ლოკაციის მიღება ვერ მოხერხდა');
         }
       );

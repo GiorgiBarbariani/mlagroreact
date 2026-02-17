@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
-import L from 'leaflet';
+import { useRef, useState, useEffect, useImperativeHandle, forwardRef } from 'react';
+import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-geometryutil';
 import './LeafletMap.scss';
+import { georgiaRegionsGeoJSON, getRegionColor } from '../../data/georgiaRegions';
 
 // Fix Leaflet default icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -49,7 +50,7 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
   center = [41.7151, 44.8271], // Georgia center
   zoom = 7,
   enableDrawing = true,
-  cadastralCode,
+  cadastralCode: _cadastralCode,
   onCadastralClick
 }, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -235,6 +236,92 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
       maxZoom: 20
     });
 
+    // Regional boundaries layer with GeoJSON data
+    const regionBordersLayer = L.geoJSON(georgiaRegionsGeoJSON as any, {
+      style: (feature: any) => {
+        const regionCode = feature?.properties?.code || '';
+        return {
+          color: getRegionColor(regionCode),
+          weight: 2.5,
+          opacity: 0.9,
+          fillColor: getRegionColor(regionCode),
+          fillOpacity: 0.08,
+          dashArray: '5, 5'
+        };
+      },
+      onEachFeature: (feature: any, layer: any) => {
+        const props = feature.properties;
+        if (props) {
+          // Add popup with region info
+          layer.bindPopup(`
+            <div style="text-align: center; min-width: 120px;">
+              <strong style="font-size: 14px;">${props.nameKa}</strong><br/>
+              <span style="color: #666;">${props.name}</span><br/>
+              <hr style="margin: 5px 0;"/>
+              <small>დედაქალაქი: ${props.capitalKa}</small>
+            </div>
+          `);
+
+          // Highlight on hover
+          layer.on({
+            mouseover: (e: any) => {
+              const target = e.target;
+              target.setStyle({
+                weight: 4,
+                fillOpacity: 0.2,
+                dashArray: ''
+              });
+              target.bringToFront();
+            },
+            mouseout: (e: any) => {
+              regionBordersLayer.resetStyle(e.target);
+            }
+          });
+        }
+      }
+    });
+
+    // Add region labels layer
+    const regionLabelsLayer = L.layerGroup();
+    georgiaRegionsGeoJSON.features.forEach(feature => {
+      const props = feature.properties;
+      const coords = feature.geometry.coordinates[0];
+
+      // Calculate center of region polygon
+      let sumLat = 0, sumLng = 0;
+      coords.forEach(coord => {
+        sumLng += coord[0];
+        sumLat += coord[1];
+      });
+      const centerLat = sumLat / coords.length;
+      const centerLng = sumLng / coords.length;
+
+      // Create label
+      const labelIcon = L.divIcon({
+        className: 'region-label',
+        html: `<span style="
+          background: rgba(255,255,255,0.85);
+          padding: 3px 8px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 600;
+          color: ${getRegionColor(props.code)};
+          border: 1px solid ${getRegionColor(props.code)};
+          white-space: nowrap;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        ">${props.nameKa}</span>`,
+        iconSize: [80, 20] as L.PointExpression,
+        iconAnchor: [40, 10]
+      });
+
+      const labelMarker = L.marker([centerLat, centerLng], {
+        icon: labelIcon,
+        interactive: false
+      });
+
+      regionLabelsLayer.addLayer(labelMarker);
+    });
+
     // Layer control
     const baseMaps = {
       'რუკა': osmLayer,
@@ -242,7 +329,9 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
       'საქართველოს რუკა': georgianMapLayer
     };
 
-    const overlayMaps = {
+    const overlayMaps: Record<string, L.Layer> = {
+      'რეგიონების საზღვრები': regionBordersLayer,
+      'რეგიონების სახელები': regionLabelsLayer,
       'საკადასტრო ნაკვეთები': cadastralLayer,
       'საკადასტრო ნომრები': cadastralTileLayer,
       'მუნიციპალიტეტების საზღვრები': cityBoundariesLayer,
@@ -252,11 +341,15 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
 
     L.control.layers(baseMaps, overlayMaps).addTo(map);
 
+    // Add region borders and labels by default
+    regionBordersLayer.addTo(map);
+    regionLabelsLayer.addTo(map);
+
     // Add layers by default
     cadastralTileLayer.addTo(map); // Try the tile layer first
     cityBoundariesLayer.addTo(map);
 
-    // Handle zoom to show/hide cadastral layer
+    // Handle zoom to show/hide cadastral layer and region labels
     map.on('zoomend', () => {
       const currentZoom = map.getZoom();
 
@@ -269,6 +362,30 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
         loadVisibleCadastralCodes();
       } else {
         map.removeLayer(cadastralTileLayer);
+      }
+
+      // Show region labels at zoom levels 6-11, hide when zoomed in too much
+      if (currentZoom >= 6 && currentZoom <= 11) {
+        if (!map.hasLayer(regionLabelsLayer)) {
+          regionLabelsLayer.addTo(map);
+        }
+      } else {
+        if (map.hasLayer(regionLabelsLayer)) {
+          map.removeLayer(regionLabelsLayer);
+        }
+      }
+
+      // Adjust region border opacity based on zoom
+      if (currentZoom > 10) {
+        regionBordersLayer.setStyle({
+          opacity: 0.4,
+          fillOpacity: 0.02
+        });
+      } else {
+        regionBordersLayer.setStyle({
+          opacity: 0.9,
+          fillOpacity: 0.08
+        });
       }
     });
 
@@ -473,9 +590,6 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
       }
     });
 
-    // Regional boundaries - disabled due to external API unavailability
-    // The external GitHub asset is no longer available
-
     // Handle map clicks for cadastral info
     map.on('click', async (e: L.LeafletMouseEvent) => {
       if (!onCadastralClick) return;
@@ -519,7 +633,7 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
           cadastralLayerRef.current.addLayer(layer);
 
           // Show popup with cadastral info
-          const popup = L.popup()
+          L.popup()
             .setLatLng([lat, lng])
             .setContent(`
               <div>
@@ -631,8 +745,8 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
         button.style.display = 'block';
         button.style.textAlign = 'center';
 
-        L.DomEvent.on(button, 'click', function(e) {
-          L.DomEvent.preventDefault(e);
+        L.DomEvent.on(button, 'click', function(e: Event) {
+          L.DomEvent.preventDefault(e as any);
           if (!document.fullscreenElement) {
             mapContainer.current?.requestFullscreen();
           } else {

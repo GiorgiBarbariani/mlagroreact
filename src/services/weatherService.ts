@@ -172,7 +172,7 @@ export const weatherService = {
       if (data.forecast && Array.isArray(data.forecast) && data.forecast.length > 0) {
         const today = data.forecast[0];
         return {
-          temperature: today.temperature ?? ((today.temperature_min + today.temperature_max) / 2) ?? null,
+          temperature: today.temperature ?? (today.temperature_min != null && today.temperature_max != null ? (today.temperature_min + today.temperature_max) / 2 : null),
           humidity: today.humidity ?? null,
           precipitation: today.precipitation ?? 0,
           windSpeed: today.wind_speed ?? today.windSpeed ?? null,

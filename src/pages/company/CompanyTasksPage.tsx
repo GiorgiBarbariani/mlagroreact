@@ -13,7 +13,6 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import CancelIcon from '@mui/icons-material/Cancel';
 import PendingIcon from '@mui/icons-material/Pending';
-import { useAuth } from '../../hooks/useAuth';
 import { taskService } from '../../services/taskService';
 import type { Task, CreateTaskDto, UpdateTaskDto, Employee } from '../../services/taskService';
 import './CompanyTasksPage.scss';
@@ -41,7 +40,6 @@ const initialFormState: TaskForm = {
 };
 
 const CompanyTasksPage: React.FC = () => {
-  const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
