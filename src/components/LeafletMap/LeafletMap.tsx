@@ -244,8 +244,8 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
           color: getRegionColor(regionCode),
           weight: 2.5,
           opacity: 0.9,
-          fillColor: getRegionColor(regionCode),
-          fillOpacity: 0.08,
+          fillColor: 'transparent',
+          fillOpacity: 0,
           dashArray: '5, 5'
         };
       },
@@ -268,7 +268,6 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
               const target = e.target;
               target.setStyle({
                 weight: 4,
-                fillOpacity: 0.2,
                 dashArray: ''
               });
               target.bringToFront();
@@ -379,12 +378,12 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
       if (currentZoom > 10) {
         regionBordersLayer.setStyle({
           opacity: 0.4,
-          fillOpacity: 0.02
+          fillOpacity: 0
         });
       } else {
         regionBordersLayer.setStyle({
           opacity: 0.9,
-          fillOpacity: 0.08
+          fillOpacity: 0
         });
       }
     });
