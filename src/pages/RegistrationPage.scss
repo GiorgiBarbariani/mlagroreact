@@ -75,6 +75,85 @@
           margin-bottom: 0;
         }
 
+        // Phone input with +995 prefix
+        .phone-input-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: $spacing-xs;
+
+          .input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            color: black;
+
+            &__required {
+              color: $error-color;
+              margin-left: 2px;
+            }
+          }
+
+          .phone-input-container {
+            display: flex;
+            align-items: center;
+            border: 1px solid $gray-300;
+            border-radius: $border-radius-md;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+
+            &:focus-within {
+              border-color: $primary-color;
+              box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+            }
+
+            &:has(.phone-input.error) {
+              border-color: $error-color;
+
+              &:focus-within {
+                box-shadow: 0 0 0 3px rgba($error-color, 0.1);
+              }
+            }
+
+            .phone-prefix {
+              padding: $spacing-sm $spacing-md;
+              background: $gray-100;
+              color: $gray-700;
+              font-weight: 500;
+              font-size: 14px;
+              border-right: 1px solid $gray-300;
+              user-select: none;
+            }
+
+            .phone-input {
+              flex: 1;
+              border: none;
+              padding: $spacing-sm $spacing-md;
+              font-size: 14px;
+              color: $gray-900;
+              background: white;
+              outline: none;
+
+              &::placeholder {
+                color: $gray-400;
+              }
+
+              &.error {
+                color: $gray-900;
+              }
+            }
+          }
+
+          .input-error {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: $error-color;
+            margin-top: 2px;
+          }
+        }
+
         .form-options {
           margin-bottom: $spacing-lg;
 

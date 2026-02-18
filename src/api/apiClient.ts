@@ -1,6 +1,8 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.PROD
+  ? 'https://mlagronode-production.up.railway.app/api'
+  : (import.meta.env.VITE_API_URL || 'http://localhost:7001/api');
 
 class ApiClient {
   private axiosInstance: AxiosInstance;

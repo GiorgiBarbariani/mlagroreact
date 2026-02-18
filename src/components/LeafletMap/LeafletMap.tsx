@@ -212,6 +212,11 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
     const map = L.map(mapContainer.current).setView(center, zoom);
     mapInstance.current = map;
 
+    // Create custom pane for index points with high z-index
+    const indexPointsPane = map.createPane('indexPointsPane');
+    indexPointsPane.style.zIndex = '650';
+    indexPointsPane.style.pointerEvents = 'auto';
+
     // Create tile layers
     const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
@@ -233,14 +238,9 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
     // Add satellite layer as default
     satelliteLayer.addTo(map);
 
-    // Try different cadastral layer endpoints and formats
-    // Option 1: Direct tile service
-    const cadastralTileLayer = L.tileLayer('https://maps.registry.ge/aerial/cadastre/{z}/{x}/{y}.png', {
-      attribution: '© საჯარო რეესტრი',
-      maxZoom: 20,
-      minZoom: 14, // Cadastral codes usually visible at higher zoom
-      opacity: 0.8
-    });
+    // Cadastral tile layer - disabled due to maps.registry.ge unavailability
+    // Using a placeholder layer group instead
+    const cadastralTileLayer = L.layerGroup();
 
     // Option 2: WMS service
     const cadastralLayer = L.tileLayer.wms('https://gis.napr.gov.ge/arcgis/services/Cadastre/MapServer/WMSServer', {
@@ -937,44 +937,54 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
         return gradient[clampedIndex];
       };
 
-      // Sample points to avoid too many markers (max 500)
-      const maxPoints = 500;
+      // Sample points to avoid too many markers (max 200 for performance)
+      const maxPoints = 200;
       const step = indexPoints.points.length > maxPoints
         ? Math.ceil(indexPoints.points.length / maxPoints)
         : 1;
 
+      let addedPoints = 0;
       for (let i = 0; i < indexPoints.points.length; i += step) {
         const point = indexPoints.points[i];
-        const color = getColorForValue(point.value);
 
-        const circleMarker = L.circleMarker([point.latitude, point.longitude], {
-          radius: 6,
-          fillColor: color,
-          color: '#fff',
-          weight: 1,
-          opacity: 0.9,
-          fillOpacity: 0.8
+        // Skip points with invalid coordinates
+        if (!point || point.latitude == null || point.longitude == null ||
+            isNaN(point.latitude) || isNaN(point.longitude)) {
+          continue;
+        }
+
+        // Ensure value is a valid number
+        const value = typeof point.value === 'number' && !isNaN(point.value) ? point.value : 0;
+        const color = getColorForValue(value);
+        const valueStr = value.toFixed(2);
+
+        // Create a div icon marker that shows value on hover
+        const icon = L.divIcon({
+          className: 'index-point-marker',
+          html: `
+            <div class="index-dot" style="background-color: ${color}; border-color: ${color};">
+              <div class="index-value-label" style="background-color: ${color};">
+                ${valueStr}
+                <span class="index-type">${indexPoints.indexType.toUpperCase()}</span>
+              </div>
+            </div>
+          `,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8]
         });
 
-        // Add tooltip with value on hover
-        circleMarker.bindTooltip(
-          `<div style="text-align: center; font-weight: bold;">
-            <span style="font-size: 14px; color: ${color};">${point.value.toFixed(3)}</span>
-            <br/>
-            <span style="font-size: 10px; color: #666;">${indexPoints.indexType.toUpperCase()}</span>
-          </div>`,
-          {
-            permanent: false,
-            direction: 'top',
-            className: 'index-value-tooltip',
-            offset: [0, -5]
-          }
-        );
+        const marker = L.marker([point.latitude, point.longitude], {
+          icon: icon,
+          interactive: true,
+          pane: 'indexPointsPane'
+        });
 
-        pointsLayer.addLayer(circleMarker);
+        pointsLayer.addLayer(marker);
+        addedPoints++;
       }
 
       pointsLayer.addTo(mapInstance.current);
+      console.log(`Added ${addedPoints} index points to map`);
       indexPointsLayerRef.current = pointsLayer;
     }
   }, [indexPoints]);

@@ -44,8 +44,10 @@ class ChatService {
       return;
     }
 
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7001';
-    const socketUrl = apiUrl.replace('/api', '');
+    const apiUrl = import.meta.env.PROD
+      ? 'https://mlagronode-production.up.railway.app'
+      : (import.meta.env.VITE_API_URL || 'http://localhost:7001').replace('/api', '');
+    const socketUrl = apiUrl;
 
     try {
       this.socket = io(socketUrl, {

@@ -49,7 +49,8 @@ const RegistrationPage: React.FC = () => {
         return '';
       case 'phone':
         if (!value) return 'ტელეფონის ნომერი აუცილებელია';
-        if (value.length < 9) return 'მინიმუმ 9 ციფრი';
+        if (!value.startsWith('5')) return 'ნომერი უნდა იწყებოდეს 5-ით';
+        if (value.length !== 9) return 'ნომერი უნდა იყოს 9 ციფრი';
         return '';
       default:
         return '';
@@ -59,10 +60,16 @@ const RegistrationPage: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Remove numbers from firstName and lastName
     let processedValue = value;
+
+    // Only allow letters (Georgian and Latin) for firstName and lastName
     if (name === 'firstName' || name === 'lastName') {
-      processedValue = value.replace(/[0-9]/g, '');
+      processedValue = value.replace(/[^a-zA-Zა-ჰ]/g, '');
+    }
+
+    // Phone: only allow digits, max 9 characters
+    if (name === 'phone') {
+      processedValue = value.replace(/[^0-9]/g, '').slice(0, 9);
     }
 
     setFormData(prev => ({ ...prev, [name]: processedValue }));
@@ -100,7 +107,7 @@ const RegistrationPage: React.FC = () => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        phone: formData.phone
+        phone: `+995${formData.phone}`
       });
 
       if (response.success) {
@@ -213,17 +220,26 @@ const RegistrationPage: React.FC = () => {
                 required
               />
 
-              <Input
-                label="ტელეფონი"
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+995 5XX XXX XXX"
-                leftIcon={<Phone size={18} />}
-                error={errors.phone}
-                required
-              />
+              <div className="phone-input-wrapper">
+                <label className="input-label">
+                  ტელეფონი<span className="input-label__required">*</span>
+                </label>
+                <div className="phone-input-container">
+                  <span className="phone-prefix">+995</span>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="5XX XXX XXX"
+                    className={`phone-input ${errors.phone ? 'error' : ''}`}
+                    required
+                  />
+                </div>
+                {errors.phone && (
+                  <span className="input-error">{errors.phone}</span>
+                )}
+              </div>
             </div>
 
             <Input

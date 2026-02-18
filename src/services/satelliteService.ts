@@ -72,11 +72,20 @@ class SatelliteService {
       const response = await apiClient.get(url);
       // Backend returns array of points directly
       if (Array.isArray(response.data)) {
-        return response.data.map((p: any) => ({
-          latitude: p.latitude || p.lat,
-          longitude: p.longitude || p.lng,
-          value: p.value || p.ndvi || p.Ndvi || 0
-        }));
+        return response.data.map((p: any) => {
+          // Handle nested Point object format from backend
+          // Format: { Point: { latitude, longitude, X, Y }, Value, Ndvi }
+          const point = p.Point || p.point || p;
+          const lat = point.latitude ?? point.lat ?? point.Y ?? point.y;
+          const lng = point.longitude ?? point.lng ?? point.X ?? point.x;
+          const value = p.Value ?? p.value ?? p.Ndvi ?? p.ndvi ?? 0;
+
+          return {
+            latitude: lat,
+            longitude: lng,
+            value: value
+          };
+        }).filter((p: IndexPoint) => p.latitude != null && p.longitude != null);
       }
       return [];
     } catch (error) {
@@ -124,13 +133,29 @@ class SatelliteService {
       const url = `/cropMonitoring/${endpointName}/GetByFieldId?fieldId=${fieldId}`;
 
       const response = await apiClient.get(url);
+      console.log(`Raw ${indexType} points response:`, response.data);
+
       // Backend returns array of points directly
       if (Array.isArray(response.data)) {
-        return response.data.map((p: any) => ({
-          latitude: p.latitude || p.lat,
-          longitude: p.longitude || p.lng,
-          value: p.value || p[indexType] || p[indexType.toUpperCase()] || 0
-        }));
+        const parsedPoints = response.data.map((p: any) => {
+          // Handle nested Point object format from backend
+          // Format: { Point: { latitude, longitude, X, Y }, Value, Ndvi/Ndmi/etc }
+          const point = p.Point || p.point || p;
+          const lat = point.latitude ?? point.lat ?? point.Y ?? point.y;
+          const lng = point.longitude ?? point.lng ?? point.X ?? point.x;
+          // Try different value field names
+          const value = p.Value ?? p.value ?? p[indexType] ?? p[indexType.toUpperCase()] ??
+                       p[indexType.charAt(0).toUpperCase() + indexType.slice(1)] ?? 0;
+
+          return {
+            latitude: lat,
+            longitude: lng,
+            value: value
+          };
+        }).filter((p: IndexPoint) => p.latitude != null && p.longitude != null);
+
+        console.log(`Parsed ${indexType} points:`, parsedPoints.slice(0, 5));
+        return parsedPoints;
       }
       return [];
     } catch (error) {
