@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Satellite,
   Map,
@@ -9,24 +9,30 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-  Info,
-  Thermometer,
   Droplets,
   Leaf,
-  Sun,
-  Cloud,
   TrendingUp,
   Eye,
   EyeOff,
   ZoomIn,
   ZoomOut,
-  Maximize2
+  Maximize2,
+  BarChart3,
+  ArrowUp,
+  ArrowDown,
+  Minus,
+  ImageIcon,
+  Play,
+  Pause
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import LeafletMap, { type LeafletMapRef } from '../../components/LeafletMap/LeafletMap';
 import { apiClient } from '../../api/apiClient';
 import { useAuth } from '../../hooks/useAuth';
 import './SatelliteDataPage.scss';
+
+// Leaflet imports
+import * as L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 interface Field {
   id: string;
@@ -44,19 +50,36 @@ interface SatelliteLayer {
   description: string;
   icon: React.ReactNode;
   color: string;
+  gradient: string[];
   unit: string;
   minValue: number;
   maxValue: number;
 }
 
-interface SatelliteData {
-  fieldId: string;
+interface SatelliteImage {
   date: string;
-  ndvi: number;
-  moisture: number;
-  temperature: number;
   cloudCover: number;
-  healthIndex: number;
+  source: string;
+  available: boolean;
+}
+
+interface IndexDataPoint {
+  date: string;
+  value: number;
+  min: number;
+  max: number;
+  mean: number;
+}
+
+interface FieldStats {
+  currentValue: number;
+  previousValue: number;
+  change: number;
+  changePercent: number;
+  min: number;
+  max: number;
+  mean: number;
+  standardDeviation: number;
 }
 
 const satelliteLayers: SatelliteLayer[] = [
@@ -64,74 +87,129 @@ const satelliteLayers: SatelliteLayer[] = [
     id: 'ndvi',
     name: 'NDVI',
     nameKa: 'ვეგეტაციის ინდექსი',
-    description: 'Normalized Difference Vegetation Index - მცენარეულობის ჯანმრთელობის მაჩვენებელი',
+    description: 'Normalized Difference Vegetation Index',
     icon: <Leaf size={18} />,
     color: '#4CAF50',
+    gradient: ['#8B4513', '#CD853F', '#F4A460', '#FFFF00', '#ADFF2F', '#32CD32', '#228B22', '#006400'],
     unit: '',
     minValue: -1,
     maxValue: 1
   },
   {
-    id: 'moisture',
-    name: 'Soil Moisture',
-    nameKa: 'ნიადაგის ტენიანობა',
-    description: 'ნიადაგის ტენიანობის დონე პროცენტებში',
+    id: 'msavi',
+    name: 'MSAVI',
+    nameKa: 'მოდიფიცირებული SAVI',
+    description: 'Modified Soil Adjusted Vegetation Index',
+    icon: <Leaf size={18} />,
+    color: '#8BC34A',
+    gradient: ['#8B4513', '#DEB887', '#F0E68C', '#98FB98', '#32CD32', '#228B22'],
+    unit: '',
+    minValue: -1,
+    maxValue: 1
+  },
+  {
+    id: 'ndre',
+    name: 'NDRE',
+    nameKa: 'წითელი კიდის ინდექსი',
+    description: 'Normalized Difference Red Edge',
+    icon: <TrendingUp size={18} />,
+    color: '#9C27B0',
+    gradient: ['#4A148C', '#7B1FA2', '#AB47BC', '#CE93D8', '#E1BEE7'],
+    unit: '',
+    minValue: -1,
+    maxValue: 1
+  },
+  {
+    id: 'reci',
+    name: 'ReCI',
+    nameKa: 'ქლოროფილის ინდექსი',
+    description: 'Red Edge Chlorophyll Index',
+    icon: <Leaf size={18} />,
+    color: '#00BCD4',
+    gradient: ['#004D40', '#00796B', '#009688', '#4DB6AC', '#80CBC4'],
+    unit: '',
+    minValue: 0,
+    maxValue: 3
+  },
+  {
+    id: 'ndmi',
+    name: 'NDMI',
+    nameKa: 'ტენიანობის ინდექსი',
+    description: 'Normalized Difference Moisture Index',
     icon: <Droplets size={18} />,
     color: '#2196F3',
-    unit: '%',
-    minValue: 0,
-    maxValue: 100
-  },
-  {
-    id: 'temperature',
-    name: 'Surface Temperature',
-    nameKa: 'ზედაპირის ტემპერატურა',
-    description: 'მიწის ზედაპირის ტემპერატურა',
-    icon: <Thermometer size={18} />,
-    color: '#FF5722',
-    unit: '°C',
-    minValue: -10,
-    maxValue: 50
-  },
-  {
-    id: 'lai',
-    name: 'LAI',
-    nameKa: 'ფოთლის ფართობის ინდექსი',
-    description: 'Leaf Area Index - ფოთლების სიმჭიდროვე',
-    icon: <TrendingUp size={18} />,
-    color: '#8BC34A',
+    gradient: ['#8B4513', '#DEB887', '#87CEEB', '#4169E1', '#00008B'],
     unit: '',
-    minValue: 0,
-    maxValue: 8
+    minValue: -1,
+    maxValue: 1
   },
   {
-    id: 'trueColor',
-    name: 'True Color',
-    nameKa: 'რეალური ფერები',
-    description: 'RGB კომპოზიცია - რეალური ფერების გამოსახულება',
-    icon: <Sun size={18} />,
-    color: '#FFC107',
+    id: 'ndwi',
+    name: 'NDWI',
+    nameKa: 'წყლის ინდექსი',
+    description: 'Normalized Difference Water Index',
+    icon: <Droplets size={18} />,
+    color: '#03A9F4',
+    gradient: ['#D2691E', '#F4A460', '#F0F8FF', '#87CEEB', '#0000CD'],
     unit: '',
-    minValue: 0,
-    maxValue: 255
-  },
-  {
-    id: 'cloudMask',
-    name: 'Cloud Coverage',
-    nameKa: 'ღრუბლიანობა',
-    description: 'ღრუბლების დაფარვის პროცენტი',
-    icon: <Cloud size={18} />,
-    color: '#9E9E9E',
-    unit: '%',
-    minValue: 0,
-    maxValue: 100
+    minValue: -1,
+    maxValue: 1
   }
 ];
+
+// Generate mock historical data
+const generateHistoricalData = (days: number): IndexDataPoint[] => {
+  const data: IndexDataPoint[] = [];
+  const now = new Date();
+
+  for (let i = days; i >= 0; i -= 5) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+
+    // Simulate seasonal NDVI pattern
+    const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000);
+    const baseValue = 0.3 + 0.4 * Math.sin((dayOfYear - 80) * Math.PI / 180);
+    const noise = (Math.random() - 0.5) * 0.1;
+    const value = Math.max(-1, Math.min(1, baseValue + noise));
+
+    data.push({
+      date: date.toISOString().split('T')[0],
+      value: value,
+      min: value - 0.15 - Math.random() * 0.1,
+      max: value + 0.15 + Math.random() * 0.1,
+      mean: value
+    });
+  }
+
+  return data;
+};
+
+// Generate mock satellite images
+const generateSatelliteImages = (days: number): SatelliteImage[] => {
+  const images: SatelliteImage[] = [];
+  const now = new Date();
+
+  for (let i = days; i >= 0; i -= 5) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+
+    images.push({
+      date: date.toISOString().split('T')[0],
+      cloudCover: Math.random() * 40,
+      source: Math.random() > 0.5 ? 'Sentinel-2' : 'Landsat-8',
+      available: Math.random() > 0.2
+    });
+  }
+
+  return images.reverse();
+};
 
 const SatelliteDataPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const mapRef = useRef<LeafletMapRef>(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const mapInstance = useRef<L.Map | null>(null);
+  const fieldLayerRef = useRef<L.GeoJSON | null>(null);
 
   // State
   const [fields, setFields] = useState<Field[]>([]);
@@ -139,7 +217,8 @@ const SatelliteDataPage: React.FC = () => {
   const [selectedField, setSelectedField] = useState<Field | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
 
   // Satellite layers state
   const [activeLayer, setActiveLayer] = useState<string>('ndvi');
@@ -149,7 +228,7 @@ const SatelliteDataPage: React.FC = () => {
   // Date range state
   const [startDate, setStartDate] = useState<string>(() => {
     const date = new Date();
-    date.setMonth(date.getMonth() - 1);
+    date.setMonth(date.getMonth() - 3);
     return date.toISOString().split('T')[0];
   });
   const [endDate, setEndDate] = useState<string>(() => {
@@ -157,12 +236,18 @@ const SatelliteDataPage: React.FC = () => {
   });
 
   // Satellite data state
-  const [satelliteData, setSatelliteData] = useState<SatelliteData | null>(null);
-  const [dataLoading, setDataLoading] = useState(false);
+  const [selectedImageDate, setSelectedImageDate] = useState<string>('');
+  const [satelliteImages, setSatelliteImages] = useState<SatelliteImage[]>([]);
+  const [historicalData, setHistoricalData] = useState<IndexDataPoint[]>([]);
+  const [fieldStats, setFieldStats] = useState<FieldStats | null>(null);
+  const [_dataLoading, setDataLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  // Map settings
-  const mapCenter: [number, number] = [41.7151, 44.8271];
-  const mapZoom = 7;
+  // Get active layer info
+  const activeLayerInfo = useMemo(() =>
+    satelliteLayers.find(l => l.id === activeLayer),
+    [activeLayer]
+  );
 
   // Load fields
   useEffect(() => {
@@ -184,12 +269,109 @@ const SatelliteDataPage: React.FC = () => {
     }
   }, [searchTerm, fields]);
 
-  // Load satellite data when field or dates change
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainer.current || mapInstance.current) return;
+
+    const map = L.map(mapContainer.current).setView([41.7151, 44.8271], 7);
+    mapInstance.current = map;
+
+    // Add satellite layer
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Add labels layer on top
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+      attribution: '',
+      maxZoom: 19,
+      pane: 'shadowPane'
+    }).addTo(map);
+
+    return () => {
+      map.remove();
+      mapInstance.current = null;
+    };
+  }, []);
+
+  // Update field visualization on map
+  useEffect(() => {
+    if (!mapInstance.current || !selectedField) return;
+
+    // Remove existing field layer
+    if (fieldLayerRef.current) {
+      mapInstance.current.removeLayer(fieldLayerRef.current);
+    }
+
+    // Parse field coordinates
+    let coordinates: number[][] = [];
+    if (selectedField.polygonData && Array.isArray(selectedField.polygonData)) {
+      coordinates = selectedField.polygonData.map((coord: any) =>
+        Array.isArray(coord) ? [coord[1], coord[0]] : [coord.lng, coord.lat]
+      );
+    } else if (selectedField.coordinates) {
+      const pairs = selectedField.coordinates.split(';').map(p => p.trim());
+      coordinates = pairs.map(pair => {
+        const [lat, lng] = pair.split(',').map(v => parseFloat(v.trim()));
+        return [lng, lat];
+      }).filter(c => !isNaN(c[0]) && !isNaN(c[1]));
+    }
+
+    if (coordinates.length < 3) return;
+
+    // Create GeoJSON feature
+    const feature: GeoJSON.Feature<GeoJSON.Polygon> = {
+      type: 'Feature',
+      properties: { name: selectedField.name },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [coordinates]
+      }
+    };
+
+    // Get color based on current index value
+    const currentValue = fieldStats?.currentValue ?? 0.5;
+    const indexColor = getIndexColor(currentValue, activeLayerInfo);
+
+    // Create styled layer
+    fieldLayerRef.current = L.geoJSON(feature, {
+      style: {
+        fillColor: indexColor,
+        fillOpacity: layerOpacity / 100,
+        color: '#fff',
+        weight: 3,
+        opacity: 1
+      }
+    }).addTo(mapInstance.current);
+
+    // Fit map to field bounds
+    const bounds = fieldLayerRef.current.getBounds();
+    mapInstance.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+
+  }, [selectedField, fieldStats, activeLayer, layerOpacity, activeLayerInfo]);
+
+  // Load satellite data when field changes
   useEffect(() => {
     if (selectedField) {
-      loadSatelliteData(selectedField.id);
+      loadSatelliteData();
     }
   }, [selectedField, startDate, endDate, activeLayer]);
+
+  // Animation effect
+  useEffect(() => {
+    if (!isPlaying || satelliteImages.length === 0) return;
+
+    const interval = setInterval(() => {
+      setSelectedImageDate(prev => {
+        const currentIndex = satelliteImages.findIndex(img => img.date === prev);
+        const nextIndex = (currentIndex + 1) % satelliteImages.length;
+        return satelliteImages[nextIndex].date;
+      });
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [isPlaying, satelliteImages]);
 
   const loadFields = async () => {
     try {
@@ -204,6 +386,11 @@ const SatelliteDataPage: React.FC = () => {
       const data = response.data?.data || response.data || [];
       setFields(data);
       setFilteredFields(data);
+
+      // Auto-select first field
+      if (data.length > 0 && !selectedField) {
+        selectField(data[0]);
+      }
     } catch (error) {
       console.error('Error loading fields:', error);
       setFields([]);
@@ -213,27 +400,49 @@ const SatelliteDataPage: React.FC = () => {
     }
   };
 
-  const loadSatelliteData = async (fieldId: string) => {
+  const loadSatelliteData = async () => {
+    if (!selectedField) return;
+
     try {
       setDataLoading(true);
-      // Simulated satellite data - in production, this would come from an API
-      // that integrates with satellite data providers like Sentinel, Landsat, etc.
-      await new Promise(resolve => setTimeout(resolve, 800));
 
-      const mockData: SatelliteData = {
-        fieldId,
-        date: endDate,
-        ndvi: 0.45 + Math.random() * 0.4,
-        moisture: 30 + Math.random() * 40,
-        temperature: 15 + Math.random() * 20,
-        cloudCover: Math.random() * 30,
-        healthIndex: 60 + Math.random() * 35
-      };
+      // Generate mock data (in production, this would come from satellite API)
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      setSatelliteData(mockData);
+      const images = generateSatelliteImages(90);
+      const history = generateHistoricalData(90);
+
+      setSatelliteImages(images);
+      setHistoricalData(history);
+
+      if (images.length > 0) {
+        setSelectedImageDate(images[0].date);
+      }
+
+      // Calculate field statistics
+      if (history.length > 0) {
+        const current = history[0];
+        const previous = history.length > 1 ? history[1] : current;
+        const values = history.map(h => h.value);
+
+        setFieldStats({
+          currentValue: current.value,
+          previousValue: previous.value,
+          change: current.value - previous.value,
+          changePercent: previous.value !== 0
+            ? ((current.value - previous.value) / Math.abs(previous.value)) * 100
+            : 0,
+          min: Math.min(...values),
+          max: Math.max(...values),
+          mean: values.reduce((a, b) => a + b, 0) / values.length,
+          standardDeviation: Math.sqrt(
+            values.reduce((sq, n) => sq + Math.pow(n - (values.reduce((a, b) => a + b, 0) / values.length), 2), 0) / values.length
+          )
+        });
+      }
+
     } catch (error) {
       console.error('Error loading satellite data:', error);
-      setSatelliteData(null);
     } finally {
       setDataLoading(false);
     }
@@ -241,46 +450,82 @@ const SatelliteDataPage: React.FC = () => {
 
   const selectField = (field: Field) => {
     setSelectedField(field);
-    if (mapRef.current) {
-      mapRef.current.centerOnField(field);
-    }
   };
 
-  const handleAreaDrawn = (area: number, coordinates: any[]) => {
-    console.log('Area drawn:', area, coordinates);
+  const getIndexColor = (value: number, layer: SatelliteLayer | undefined): string => {
+    if (!layer) return '#808080';
+
+    const normalized = (value - layer.minValue) / (layer.maxValue - layer.minValue);
+    const index = Math.floor(normalized * (layer.gradient.length - 1));
+    const clampedIndex = Math.max(0, Math.min(layer.gradient.length - 1, index));
+
+    return layer.gradient[clampedIndex];
   };
 
-  const getActiveLayerInfo = () => {
-    return satelliteLayers.find(l => l.id === activeLayer);
-  };
-
-  const getHealthStatus = (value: number) => {
-    if (value >= 80) return { status: 'კარგი', color: '#4CAF50' };
-    if (value >= 60) return { status: 'საშუალო', color: '#FFC107' };
-    if (value >= 40) return { status: 'დაბალი', color: '#FF9800' };
-    return { status: 'კრიტიკული', color: '#F44336' };
+  const getChangeIcon = (change: number) => {
+    if (change > 0.01) return <ArrowUp size={14} className="trend-up" />;
+    if (change < -0.01) return <ArrowDown size={14} className="trend-down" />;
+    return <Minus size={14} className="trend-neutral" />;
   };
 
   const exportData = () => {
-    if (!satelliteData || !selectedField) return;
+    if (!historicalData.length || !selectedField) return;
 
-    const exportContent = {
-      field: selectedField.name,
-      date: satelliteData.date,
-      layer: activeLayer,
-      data: satelliteData
-    };
+    const csv = [
+      'Date,Value,Min,Max,Mean',
+      ...historicalData.map(d => `${d.date},${d.value.toFixed(4)},${d.min.toFixed(4)},${d.max.toFixed(4)},${d.mean.toFixed(4)}`)
+    ].join('\n');
 
-    const blob = new Blob([JSON.stringify(exportContent, null, 2)], { type: 'application/json' });
+    const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `satellite-data-${selectedField.name}-${endDate}.json`;
+    a.download = `${selectedField.name}-${activeLayer}-${endDate}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  const activeLayerInfo = getActiveLayerInfo();
+  // Chart dimensions
+  const chartWidth = 280;
+  const chartHeight = 120;
+  const chartPadding = { top: 10, right: 10, bottom: 20, left: 35 };
+
+  // Create chart path
+  const chartPath = useMemo(() => {
+    if (historicalData.length < 2) return '';
+
+    const innerWidth = chartWidth - chartPadding.left - chartPadding.right;
+    const innerHeight = chartHeight - chartPadding.top - chartPadding.bottom;
+
+    const minVal = activeLayerInfo?.minValue ?? -1;
+    const maxVal = activeLayerInfo?.maxValue ?? 1;
+
+    const xScale = (i: number) => chartPadding.left + (i / (historicalData.length - 1)) * innerWidth;
+    const yScale = (v: number) => chartPadding.top + innerHeight - ((v - minVal) / (maxVal - minVal)) * innerHeight;
+
+    return historicalData.map((d, i) =>
+      `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d.value)}`
+    ).join(' ');
+  }, [historicalData, activeLayerInfo]);
+
+  // Create area path for chart
+  const areaPath = useMemo(() => {
+    if (historicalData.length < 2) return '';
+
+    const innerWidth = chartWidth - chartPadding.left - chartPadding.right;
+    const innerHeight = chartHeight - chartPadding.top - chartPadding.bottom;
+
+    const minVal = activeLayerInfo?.minValue ?? -1;
+    const maxVal = activeLayerInfo?.maxValue ?? 1;
+
+    const xScale = (i: number) => chartPadding.left + (i / (historicalData.length - 1)) * innerWidth;
+    const yScale = (v: number) => chartPadding.top + innerHeight - ((v - minVal) / (maxVal - minVal)) * innerHeight;
+
+    const points = historicalData.map((d, i) => `${xScale(i)},${yScale(d.value)}`).join(' L');
+    const baseline = chartPadding.top + innerHeight;
+
+    return `M ${chartPadding.left},${baseline} L${points} L${xScale(historicalData.length - 1)},${baseline} Z`;
+  }, [historicalData, activeLayerInfo]);
 
   return (
     <div className="satellite-data-page">
@@ -293,8 +538,8 @@ const SatelliteDataPage: React.FC = () => {
           <div className="title-section">
             <Satellite className="title-icon" size={24} />
             <div>
-              <h1>სატელიტური მონაცემები</h1>
-              <span className="subtitle">Satellite Data Analysis</span>
+              <h1>სატელიტური მონიტორინგი</h1>
+              <span className="subtitle">Satellite Crop Monitoring</span>
             </div>
           </div>
         </div>
@@ -322,51 +567,130 @@ const SatelliteDataPage: React.FC = () => {
           <button
             className="action-btn primary"
             onClick={exportData}
-            disabled={!satelliteData}
+            disabled={!historicalData.length}
             title="ექსპორტი"
           >
             <Download size={18} />
-            <span>ექსპორტი</span>
+            <span>CSV</span>
           </button>
         </div>
       </div>
 
       <div className="page-content">
-        {/* Sidebar */}
-        <div className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        {/* Left Panel - Index Selection & Stats */}
+        <div className={`left-panel ${leftPanelCollapsed ? 'collapsed' : ''}`}>
           <button
-            className="collapse-btn"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="panel-toggle left"
+            onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
           >
-            {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            {leftPanelCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
 
-          {!sidebarCollapsed && (
+          {!leftPanelCollapsed && (
             <>
-              {/* Layer Selection */}
-              <div className="sidebar-section">
-                <h3><Layers size={16} /> ფენები</h3>
-                <div className="layer-list">
+              {/* Index Selection */}
+              <div className="panel-section">
+                <h3><Layers size={16} /> ინდექსები</h3>
+                <div className="index-list">
                   {satelliteLayers.map(layer => (
                     <button
                       key={layer.id}
-                      className={`layer-item ${activeLayer === layer.id ? 'active' : ''}`}
+                      className={`index-item ${activeLayer === layer.id ? 'active' : ''}`}
                       onClick={() => setActiveLayer(layer.id)}
-                      style={{ '--layer-color': layer.color } as React.CSSProperties}
+                      style={{ '--index-color': layer.color } as React.CSSProperties}
                     >
-                      <span className="layer-icon">{layer.icon}</span>
-                      <div className="layer-info">
-                        <span className="layer-name">{layer.nameKa}</span>
-                        <span className="layer-desc">{layer.name}</span>
+                      <span className="index-icon">{layer.icon}</span>
+                      <div className="index-info">
+                        <span className="index-name">{layer.name}</span>
+                        <span className="index-desc">{layer.nameKa}</span>
                       </div>
                     </button>
                   ))}
                 </div>
               </div>
 
+              {/* Current Stats */}
+              {selectedField && fieldStats && (
+                <div className="panel-section stats-section">
+                  <h3><BarChart3 size={16} /> სტატისტიკა</h3>
+                  <div className="stats-grid">
+                    <div className="stat-card main">
+                      <div className="stat-label">მიმდინარე</div>
+                      <div className="stat-value" style={{ color: activeLayerInfo?.color }}>
+                        {fieldStats.currentValue.toFixed(3)}
+                      </div>
+                      <div className={`stat-change ${fieldStats.change >= 0 ? 'positive' : 'negative'}`}>
+                        {getChangeIcon(fieldStats.change)}
+                        <span>{fieldStats.change >= 0 ? '+' : ''}{fieldStats.change.toFixed(3)}</span>
+                      </div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-label">მინ.</div>
+                      <div className="stat-value">{fieldStats.min.toFixed(3)}</div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-label">მაქს.</div>
+                      <div className="stat-value">{fieldStats.max.toFixed(3)}</div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-label">საშუალო</div>
+                      <div className="stat-value">{fieldStats.mean.toFixed(3)}</div>
+                    </div>
+                  </div>
+
+                  {/* Mini Chart */}
+                  <div className="chart-container">
+                    <svg width={chartWidth} height={chartHeight} className="index-chart">
+                      {/* Grid lines */}
+                      <line
+                        x1={chartPadding.left}
+                        y1={chartPadding.top}
+                        x2={chartPadding.left}
+                        y2={chartHeight - chartPadding.bottom}
+                        stroke="#e0e0e0"
+                      />
+                      <line
+                        x1={chartPadding.left}
+                        y1={chartHeight - chartPadding.bottom}
+                        x2={chartWidth - chartPadding.right}
+                        y2={chartHeight - chartPadding.bottom}
+                        stroke="#e0e0e0"
+                      />
+
+                      {/* Area fill */}
+                      <path
+                        d={areaPath}
+                        fill={activeLayerInfo?.color || '#4CAF50'}
+                        fillOpacity={0.2}
+                      />
+
+                      {/* Line */}
+                      <path
+                        d={chartPath}
+                        fill="none"
+                        stroke={activeLayerInfo?.color || '#4CAF50'}
+                        strokeWidth={2}
+                      />
+
+                      {/* Y-axis labels */}
+                      <text x={chartPadding.left - 5} y={chartPadding.top + 5} textAnchor="end" fontSize={10} fill="#666">
+                        {activeLayerInfo?.maxValue}
+                      </text>
+                      <text x={chartPadding.left - 5} y={chartHeight - chartPadding.bottom} textAnchor="end" fontSize={10} fill="#666">
+                        {activeLayerInfo?.minValue}
+                      </text>
+                    </svg>
+                    <div className="chart-labels">
+                      <span>{historicalData[historicalData.length - 1]?.date}</span>
+                      <span>{historicalData[0]?.date}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Opacity Control */}
-              <div className="sidebar-section">
-                <h3>გამჭვირვალობა: {layerOpacity}%</h3>
+              <div className="panel-section">
+                <h3><Eye size={16} /> გამჭვირვალობა: {layerOpacity}%</h3>
                 <input
                   type="range"
                   min="0"
@@ -376,64 +700,28 @@ const SatelliteDataPage: React.FC = () => {
                   className="opacity-slider"
                 />
               </div>
-
-              {/* Fields List */}
-              <div className="sidebar-section fields-section">
-                <h3><Map size={16} /> ნაკვეთები ({filteredFields.length})</h3>
-                <div className="search-box">
-                  <Search size={16} />
-                  <input
-                    type="text"
-                    placeholder="ძებნა..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div className="fields-list">
-                  {loading ? (
-                    <div className="loading-state">იტვირთება...</div>
-                  ) : filteredFields.length === 0 ? (
-                    <div className="empty-state">ნაკვეთები არ მოიძებნა</div>
-                  ) : (
-                    filteredFields.map(field => (
-                      <button
-                        key={field.id}
-                        className={`field-item ${selectedField?.id === field.id ? 'active' : ''}`}
-                        onClick={() => selectField(field)}
-                      >
-                        <div className="field-name">{field.name}</div>
-                        <div className="field-meta">
-                          <span>{field.area} ჰა</span>
-                          {field.crop && <span className="crop">{field.crop}</span>}
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </div>
             </>
           )}
         </div>
 
         {/* Main Map Area */}
         <div className="map-container">
-          <LeafletMap
-            ref={mapRef}
-            fields={filteredFields}
-            selectedField={selectedField}
-            onFieldSelect={selectField}
-            onAreaDrawn={handleAreaDrawn}
-            center={mapCenter}
-            zoom={mapZoom}
-            enableDrawing={false}
-          />
+          <div ref={mapContainer} className="leaflet-map" />
 
           {/* Map Controls */}
           <div className="map-controls">
-            <button className="map-control-btn" title="მიახლოება">
+            <button
+              className="map-control-btn"
+              title="მიახლოება"
+              onClick={() => mapInstance.current?.zoomIn()}
+            >
               <ZoomIn size={18} />
             </button>
-            <button className="map-control-btn" title="დაშორება">
+            <button
+              className="map-control-btn"
+              title="დაშორება"
+              onClick={() => mapInstance.current?.zoomOut()}
+            >
               <ZoomOut size={18} />
             </button>
             <button className="map-control-btn" title="სრული ეკრანი">
@@ -455,112 +743,158 @@ const SatelliteDataPage: React.FC = () => {
                 <span className="legend-icon" style={{ color: activeLayerInfo.color }}>
                   {activeLayerInfo.icon}
                 </span>
-                <span>{activeLayerInfo.nameKa}</span>
+                <span>{activeLayerInfo.name}</span>
               </div>
-              <div className="legend-gradient" style={{
-                background: activeLayerInfo.id === 'ndvi'
-                  ? 'linear-gradient(to right, #8B4513, #FFFF00, #228B22)'
-                  : activeLayerInfo.id === 'moisture'
-                  ? 'linear-gradient(to right, #F4A460, #87CEEB, #0000FF)'
-                  : activeLayerInfo.id === 'temperature'
-                  ? 'linear-gradient(to right, #0000FF, #00FF00, #FFFF00, #FF0000)'
-                  : `linear-gradient(to right, ${activeLayerInfo.color}33, ${activeLayerInfo.color})`
-              }}></div>
+              <div
+                className="legend-gradient"
+                style={{
+                  background: `linear-gradient(to right, ${activeLayerInfo.gradient.join(', ')})`
+                }}
+              />
               <div className="legend-labels">
-                <span>{activeLayerInfo.minValue}{activeLayerInfo.unit}</span>
-                <span>{activeLayerInfo.maxValue}{activeLayerInfo.unit}</span>
+                <span>{activeLayerInfo.minValue}</span>
+                <span>{activeLayerInfo.maxValue}</span>
               </div>
             </div>
           )}
 
-          {/* Data Panel */}
-          {selectedField && (
-            <div className="data-panel">
-              <div className="panel-header">
-                <h3>{selectedField.name}</h3>
-                <span className="panel-subtitle">{selectedField.area} ჰა • {selectedField.crop || 'კულტურა არ არის მითითებული'}</span>
+          {/* Image Timeline */}
+          {selectedField && satelliteImages.length > 0 && (
+            <div className="image-timeline">
+              <div className="timeline-header">
+                <ImageIcon size={16} />
+                <span>სატელიტური სურათები</span>
+                <button
+                  className={`play-btn ${isPlaying ? 'active' : ''}`}
+                  onClick={() => setIsPlaying(!isPlaying)}
+                >
+                  {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                </button>
+              </div>
+              <div className="timeline-track">
+                {satelliteImages.slice(0, 12).map((img, index) => (
+                  <button
+                    key={img.date}
+                    className={`timeline-item ${selectedImageDate === img.date ? 'active' : ''} ${!img.available ? 'unavailable' : ''}`}
+                    onClick={() => img.available && setSelectedImageDate(img.date)}
+                    title={`${img.date} - ${img.source} - ღრუბლიანობა: ${img.cloudCover.toFixed(0)}%`}
+                  >
+                    <div className="item-dot" />
+                    {index % 3 === 0 && (
+                      <span className="item-date">{new Date(img.date).toLocaleDateString('ka-GE', { month: 'short', day: 'numeric' })}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div className="timeline-info">
+                <span>{selectedImageDate && new Date(selectedImageDate).toLocaleDateString('ka-GE')}</span>
+                <span className="source">{satelliteImages.find(i => i.date === selectedImageDate)?.source}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Panel - Fields List */}
+        <div className={`right-panel ${rightPanelCollapsed ? 'collapsed' : ''}`}>
+          <button
+            className="panel-toggle right"
+            onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
+          >
+            {rightPanelCollapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          </button>
+
+          {!rightPanelCollapsed && (
+            <>
+              <div className="panel-section">
+                <h3><Map size={16} /> ნაკვეთები ({filteredFields.length})</h3>
+                <div className="search-box">
+                  <Search size={16} />
+                  <input
+                    type="text"
+                    placeholder="ძებნა..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
 
-              {dataLoading ? (
-                <div className="panel-loading">
-                  <RefreshCw className="spin" size={24} />
-                  <span>მონაცემები იტვირთება...</span>
-                </div>
-              ) : satelliteData ? (
-                <div className="panel-content">
-                  <div className="data-grid">
-                    <div className="data-card">
-                      <div className="data-icon" style={{ background: '#4CAF5020', color: '#4CAF50' }}>
+              <div className="fields-list">
+                {loading ? (
+                  <div className="loading-state">
+                    <RefreshCw className="spin" size={20} />
+                    <span>იტვირთება...</span>
+                  </div>
+                ) : filteredFields.length === 0 ? (
+                  <div className="empty-state">
+                    <Map size={32} />
+                    <span>ნაკვეთები არ მოიძებნა</span>
+                  </div>
+                ) : (
+                  filteredFields.map(field => (
+                    <button
+                      key={field.id}
+                      className={`field-card ${selectedField?.id === field.id ? 'active' : ''}`}
+                      onClick={() => selectField(field)}
+                    >
+                      <div className="field-preview">
                         <Leaf size={20} />
                       </div>
-                      <div className="data-info">
-                        <span className="data-label">NDVI</span>
-                        <span className="data-value">{satelliteData.ndvi.toFixed(2)}</span>
+                      <div className="field-details">
+                        <div className="field-name">{field.name}</div>
+                        <div className="field-meta">
+                          <span className="area">{field.area} ჰა</span>
+                          {field.crop && <span className="crop">{field.crop}</span>}
+                        </div>
                       </div>
-                    </div>
-                    <div className="data-card">
-                      <div className="data-icon" style={{ background: '#2196F320', color: '#2196F3' }}>
-                        <Droplets size={20} />
-                      </div>
-                      <div className="data-info">
-                        <span className="data-label">ტენიანობა</span>
-                        <span className="data-value">{satelliteData.moisture.toFixed(0)}%</span>
-                      </div>
-                    </div>
-                    <div className="data-card">
-                      <div className="data-icon" style={{ background: '#FF572220', color: '#FF5722' }}>
-                        <Thermometer size={20} />
-                      </div>
-                      <div className="data-info">
-                        <span className="data-label">ტემპერატურა</span>
-                        <span className="data-value">{satelliteData.temperature.toFixed(1)}°C</span>
-                      </div>
-                    </div>
-                    <div className="data-card">
-                      <div className="data-icon" style={{ background: '#9E9E9E20', color: '#9E9E9E' }}>
-                        <Cloud size={20} />
-                      </div>
-                      <div className="data-info">
-                        <span className="data-label">ღრუბლიანობა</span>
-                        <span className="data-value">{satelliteData.cloudCover.toFixed(0)}%</span>
-                      </div>
-                    </div>
-                  </div>
+                      {selectedField?.id === field.id && fieldStats && (
+                        <div
+                          className="field-index"
+                          style={{
+                            background: getIndexColor(fieldStats.currentValue, activeLayerInfo),
+                            color: '#fff'
+                          }}
+                        >
+                          {fieldStats.currentValue.toFixed(2)}
+                        </div>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
 
-                  <div className="health-indicator">
-                    <div className="health-header">
-                      <span>ჯანმრთელობის ინდექსი</span>
-                      <span
-                        className="health-status"
-                        style={{ color: getHealthStatus(satelliteData.healthIndex).color }}
-                      >
-                        {getHealthStatus(satelliteData.healthIndex).status}
-                      </span>
+              {/* Selected Field Info */}
+              {selectedField && (
+                <div className="selected-field-info">
+                  <h4>{selectedField.name}</h4>
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <span className="label">ფართობი</span>
+                      <span className="value">{selectedField.area} ჰა</span>
                     </div>
-                    <div className="health-bar">
-                      <div
-                        className="health-fill"
-                        style={{
-                          width: `${satelliteData.healthIndex}%`,
-                          background: getHealthStatus(satelliteData.healthIndex).color
-                        }}
-                      />
+                    <div className="info-item">
+                      <span className="label">კულტურა</span>
+                      <span className="value">{selectedField.crop || '-'}</span>
                     </div>
-                    <div className="health-value">{satelliteData.healthIndex.toFixed(0)}%</div>
+                    {fieldStats && (
+                      <>
+                        <div className="info-item">
+                          <span className="label">{activeLayerInfo?.name}</span>
+                          <span className="value" style={{ color: activeLayerInfo?.color }}>
+                            {fieldStats.currentValue.toFixed(3)}
+                          </span>
+                        </div>
+                        <div className="info-item">
+                          <span className="label">ცვლილება</span>
+                          <span className={`value ${fieldStats.change >= 0 ? 'positive' : 'negative'}`}>
+                            {fieldStats.change >= 0 ? '+' : ''}{fieldStats.change.toFixed(3)}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
-
-                  <div className="data-footer">
-                    <Info size={14} />
-                    <span>ბოლო განახლება: {new Date(satelliteData.date).toLocaleDateString('ka-GE')}</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="panel-empty">
-                  <Info size={24} />
-                  <span>მონაცემები არ არის ხელმისაწვდომი</span>
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </div>
