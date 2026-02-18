@@ -670,6 +670,19 @@
       .legend-icon {
         display: flex;
       }
+
+      .legend-close {
+        margin-left: auto;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #999;
+        padding: 2px;
+
+        &:hover {
+          color: #333;
+        }
+      }
     }
 
     .legend-gradient {
@@ -816,6 +829,113 @@
         padding: 2px 8px;
         border-radius: 4px;
         font-size: 11px;
+      }
+    }
+  }
+
+  // Data Panel
+  .data-panel {
+    position: absolute;
+    bottom: 100px;
+    right: 16px;
+    width: 280px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+
+    .panel-header {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 15%) 100%);
+      color: white;
+
+      h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .panel-subtitle {
+        font-size: 11px;
+        opacity: 0.9;
+      }
+    }
+
+    .panel-content {
+      padding: 12px;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .data-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 8px;
+
+      .data-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+      }
+
+      .data-info {
+        display: flex;
+        flex-direction: column;
+
+        .data-label {
+          font-size: 10px;
+          color: #666;
+        }
+
+        .data-value {
+          font-size: 14px;
+          font-weight: 600;
+          color: #333;
+        }
+      }
+    }
+
+    .health-indicator {
+      .health-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+
+        span:first-child {
+          font-size: 12px;
+          color: #333;
+        }
+
+        .health-status {
+          font-size: 11px;
+          font-weight: 600;
+        }
+      }
+
+      .health-bar {
+        height: 6px;
+        background: #e0e0e0;
+        border-radius: 3px;
+        overflow: hidden;
+
+        .health-fill {
+          height: 100%;
+          border-radius: 3px;
+          transition: width 0.5s ease;
+        }
       }
     }
   }
