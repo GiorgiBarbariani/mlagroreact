@@ -62,42 +62,17 @@
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: $spacing-md;
+          margin-bottom: $spacing-md;
         }
 
-        .form-group {
-          margin-bottom: $spacing-lg;
+        // Input component spacing
+        .input-container {
+          margin-bottom: $spacing-md;
+        }
 
-          label {
-            display: block;
-            margin-bottom: $spacing-xs;
-            color: $gray-700;
-            font-size: 14px;
-            font-weight: 500;
-          }
-
-          input {
-            width: 100%;
-            padding: $spacing-sm $spacing-md;
-            border: 1px solid $gray-300;
-            border-radius: $border-radius-sm;
-            font-size: 14px;
-
-            &:focus {
-              outline: none;
-              border-color: $primary-color;
-            }
-
-            &.error {
-              border-color: $error-color;
-            }
-          }
-
-          .field-error {
-            color: $error-color;
-            font-size: 12px;
-            margin-top: $spacing-xs;
-            display: block;
-          }
+        // Reset margin for inputs in form-row
+        .form-row .input-container {
+          margin-bottom: 0;
         }
 
         .form-options {

@@ -22,12 +22,14 @@ import {
   Play,
   Pause,
   Thermometer,
-  Cloud
+  Cloud,
+  AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LeafletMap, { type LeafletMapRef } from '../../components/LeafletMap/LeafletMap';
 import { apiClient } from '../../api/apiClient';
 import { useAuth } from '../../hooks/useAuth';
+import { satelliteService, type TimeSeriesDataPoint, type IndexPoint } from '../../services/satelliteService';
 import './SatelliteDataPage.scss';
 
 interface Field {
@@ -190,7 +192,7 @@ const SatelliteDataPage: React.FC = () => {
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
 
   // Satellite layers state
-  const [activeLayer, setActiveLayer] = useState<string>('ndvi');
+  const [activeLayer, setActiveLayer] = useState<string | null>(null);
   const [layerOpacity, setLayerOpacity] = useState<number>(80);
   const [showLegend, setShowLegend] = useState(true);
 
@@ -212,13 +214,29 @@ const SatelliteDataPage: React.FC = () => {
   const [satelliteData, setSatelliteData] = useState<SatelliteData | null>(null);
   const [_dataLoading, setDataLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [usingRealData, setUsingRealData] = useState(false);
+  const [dataError, setDataError] = useState<string | null>(null);
+  const [indexOverlay, setIndexOverlay] = useState<{
+    fieldId: string;
+    imageUrl: string;
+    bounds: [[number, number], [number, number]];
+    opacity?: number;
+  } | null>(null);
+  const [indexPoints, setIndexPoints] = useState<{
+    points: IndexPoint[];
+    indexType: string;
+    gradient: string[];
+    minValue: number;
+    maxValue: number;
+  } | null>(null);
+  const [overlayLoading, setOverlayLoading] = useState(false);
 
   // Map settings
   const mapCenter: [number, number] = [41.7151, 44.8271];
   const mapZoom = 7;
 
   // Get active layer info
-  const activeLayerInfo = satelliteLayers.find(l => l.id === activeLayer);
+  const activeLayerInfo = activeLayer ? satelliteLayers.find(l => l.id === activeLayer) : null;
 
   // Load fields
   useEffect(() => {
@@ -242,10 +260,111 @@ const SatelliteDataPage: React.FC = () => {
 
   // Load satellite data when field changes
   useEffect(() => {
-    if (selectedField) {
+    if (selectedField && activeLayer) {
       loadSatelliteData();
     }
   }, [selectedField, startDate, endDate, activeLayer]);
+
+  // Load index overlay when layer is selected
+  useEffect(() => {
+    if (selectedField && activeLayer) {
+      loadIndexOverlay();
+    } else {
+      setIndexOverlay(null);
+      setIndexPoints(null);
+    }
+  }, [selectedField, activeLayer, selectedImageDate]);
+
+  const loadIndexOverlay = async () => {
+    if (!selectedField || !activeLayer) {
+      setIndexOverlay(null);
+      setIndexPoints(null);
+      return;
+    }
+
+    try {
+      setOverlayLoading(true);
+
+      // Get field bounds from polygonData or coordinates
+      let bounds: [[number, number], [number, number]] | null = null;
+
+      if (selectedField.polygonData && Array.isArray(selectedField.polygonData)) {
+        // Calculate bounds from polygon data
+        const lats = selectedField.polygonData.map((p: [number, number]) => p[0]);
+        const lngs = selectedField.polygonData.map((p: [number, number]) => p[1]);
+        bounds = [
+          [Math.min(...lats), Math.min(...lngs)],
+          [Math.max(...lats), Math.max(...lngs)]
+        ];
+      } else if (selectedField.coordinates) {
+        // Parse coordinates string
+        const pairs = selectedField.coordinates.split(';').map(pair => pair.trim());
+        const coords = pairs.map(pair => {
+          const [lat, lng] = pair.split(',').map(v => parseFloat(v.trim()));
+          return [lat, lng] as [number, number];
+        }).filter(coord => !isNaN(coord[0]) && !isNaN(coord[1]));
+
+        if (coords.length > 0) {
+          const lats = coords.map(c => c[0]);
+          const lngs = coords.map(c => c[1]);
+          bounds = [
+            [Math.min(...lats), Math.min(...lngs)],
+            [Math.max(...lats), Math.max(...lngs)]
+          ];
+        }
+      }
+
+      if (!bounds) {
+        console.warn('Could not determine field bounds');
+        setIndexOverlay(null);
+        setIndexPoints(null);
+        return;
+      }
+
+      // Get the active layer info for gradient colors
+      const layerInfo = satelliteLayers.find(l => l.id === activeLayer);
+
+      // Fetch index image and points in parallel
+      const [imageUrl, points] = await Promise.all([
+        satelliteService.getIndexImageUrl(
+          selectedField.id,
+          activeLayer,
+          selectedImageDate || undefined
+        ),
+        satelliteService.getIndexPoints(selectedField.id, activeLayer)
+      ]);
+
+      if (imageUrl) {
+        setIndexOverlay({
+          fieldId: selectedField.id,
+          imageUrl,
+          bounds,
+          opacity: layerOpacity / 100
+        });
+      } else {
+        setIndexOverlay(null);
+      }
+
+      // Set index points for hover display
+      if (points && points.length > 0 && layerInfo) {
+        setIndexPoints({
+          points,
+          indexType: activeLayer,
+          gradient: layerInfo.gradient,
+          minValue: layerInfo.minValue,
+          maxValue: layerInfo.maxValue
+        });
+      } else {
+        setIndexPoints(null);
+      }
+    } catch (error) {
+      console.error('Error loading index overlay:', error);
+      setIndexOverlay(null);
+      setIndexPoints(null);
+    } finally {
+      setOverlayLoading(false);
+    }
+  };
 
   // Animation effect
   useEffect(() => {
@@ -294,28 +413,59 @@ const SatelliteDataPage: React.FC = () => {
 
     try {
       setDataLoading(true);
+      setDataError(null);
 
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Try to fetch real satellite data from backend
+      const [fieldIndices, timeSeries] = await Promise.all([
+        satelliteService.getFieldIndices(selectedField.id),
+        activeLayer ? satelliteService.getTimeSeries(selectedField.id, activeLayer, startDate, endDate) : Promise.resolve([])
+      ]);
 
-      const images = generateSatelliteImages(90);
-      const history = generateHistoricalData(90);
+      // If we got real data, use it
+      if (fieldIndices) {
+        const realData: SatelliteData = {
+          ndvi: fieldIndices.ndvi,
+          moisture: fieldIndices.moisture || fieldIndices.ndmi * 100,
+          temperature: fieldIndices.temperature || 20,
+          cloudCover: fieldIndices.cloudCover || 0,
+          healthIndex: fieldIndices.healthIndex || satelliteService.calculateHealthIndex(fieldIndices.ndvi)
+        };
+        setSatelliteData(realData);
+        setUsingRealData(true);
+      } else {
+        // Fallback to mock data if backend is unavailable
+        const mockData: SatelliteData = {
+          ndvi: 0.45 + Math.random() * 0.4,
+          moisture: 30 + Math.random() * 40,
+          temperature: 15 + Math.random() * 20,
+          cloudCover: Math.random() * 30,
+          healthIndex: 60 + Math.random() * 35
+        };
+        setSatelliteData(mockData);
+        setUsingRealData(false);
+      }
 
-      setSatelliteImages(images);
+      // Use real time series or generate mock
+      let history: IndexDataPoint[];
+      if (timeSeries && timeSeries.length > 0) {
+        history = timeSeries.map((ts: TimeSeriesDataPoint) => ({
+          date: ts.date,
+          value: ts.value
+        }));
+        setUsingRealData(true);
+      } else {
+        history = generateHistoricalData(90);
+        setUsingRealData(false);
+      }
       setHistoricalData(history);
+
+      // Generate satellite images (timeline)
+      const images = generateSatelliteImages(90);
+      setSatelliteImages(images);
 
       if (images.length > 0) {
         setSelectedImageDate(images[0].date);
       }
-
-      // Mock satellite data
-      const mockData: SatelliteData = {
-        ndvi: 0.45 + Math.random() * 0.4,
-        moisture: 30 + Math.random() * 40,
-        temperature: 15 + Math.random() * 20,
-        cloudCover: Math.random() * 30,
-        healthIndex: 60 + Math.random() * 35
-      };
-      setSatelliteData(mockData);
 
       // Calculate field statistics
       if (history.length > 0) {
@@ -335,6 +485,42 @@ const SatelliteDataPage: React.FC = () => {
 
     } catch (error) {
       console.error('Error loading satellite data:', error);
+      setDataError('მონაცემების ჩატვირთვა ვერ მოხერხდა');
+
+      // Fallback to mock data on error
+      const mockData: SatelliteData = {
+        ndvi: 0.45 + Math.random() * 0.4,
+        moisture: 30 + Math.random() * 40,
+        temperature: 15 + Math.random() * 20,
+        cloudCover: Math.random() * 30,
+        healthIndex: 60 + Math.random() * 35
+      };
+      setSatelliteData(mockData);
+
+      const history = generateHistoricalData(90);
+      setHistoricalData(history);
+
+      const images = generateSatelliteImages(90);
+      setSatelliteImages(images);
+
+      if (images.length > 0) {
+        setSelectedImageDate(images[0].date);
+      }
+
+      if (history.length > 0) {
+        const current = history[0];
+        const previous = history.length > 1 ? history[1] : current;
+        const values = history.map(h => h.value);
+        setFieldStats({
+          currentValue: current.value,
+          previousValue: previous.value,
+          change: current.value - previous.value,
+          min: Math.min(...values),
+          max: Math.max(...values),
+          mean: values.reduce((a, b) => a + b, 0) / values.length
+        });
+      }
+      setUsingRealData(false);
     } finally {
       setDataLoading(false);
     }
@@ -351,7 +537,7 @@ const SatelliteDataPage: React.FC = () => {
     console.log('Area drawn:', area, coordinates);
   };
 
-  const getIndexColor = (value: number, layer: SatelliteLayer | undefined): string => {
+  const getIndexColor = (value: number, layer: SatelliteLayer | null | undefined): string => {
     if (!layer) return '#808080';
     const normalized = (value - layer.minValue) / (layer.maxValue - layer.minValue);
     const index = Math.floor(normalized * (layer.gradient.length - 1));
@@ -476,12 +662,15 @@ const SatelliteDataPage: React.FC = () => {
               {/* Index Selection */}
               <div className="panel-section">
                 <h3><Layers size={16} /> ინდექსები</h3>
+                {!activeLayer && (
+                  <p className="index-hint">აირჩიეთ ინდექსი ნაკვეთზე ვიზუალიზაციისთვის</p>
+                )}
                 <div className="index-list">
                   {satelliteLayers.map(layer => (
                     <button
                       key={layer.id}
                       className={`index-item ${activeLayer === layer.id ? 'active' : ''}`}
-                      onClick={() => setActiveLayer(layer.id)}
+                      onClick={() => setActiveLayer(activeLayer === layer.id ? null : layer.id)}
                       style={{ '--index-color': layer.color } as React.CSSProperties}
                     >
                       <span className="index-icon">{layer.icon}</span>
@@ -571,7 +760,20 @@ const SatelliteDataPage: React.FC = () => {
             center={mapCenter}
             zoom={mapZoom}
             enableDrawing={false}
+            indexOverlay={indexOverlay ? {
+              ...indexOverlay,
+              opacity: layerOpacity / 100
+            } : null}
+            indexPoints={indexPoints}
           />
+
+          {/* Overlay Loading Indicator */}
+          {overlayLoading && (
+            <div className="overlay-loading">
+              <RefreshCw className="spin" size={24} />
+              <span>იტვირთება {activeLayer?.toUpperCase()}...</span>
+            </div>
+          )}
 
           {/* Legend */}
           {showLegend && activeLayerInfo && (
@@ -637,8 +839,19 @@ const SatelliteDataPage: React.FC = () => {
           {selectedField && satelliteData && (
             <div className="data-panel">
               <div className="panel-header">
-                <h3>{selectedField.name}</h3>
+                <div className="panel-title-row">
+                  <h3>{selectedField.name}</h3>
+                  <span className={`data-source-badge ${usingRealData ? 'real' : 'mock'}`}>
+                    {usingRealData ? 'Sentinel-2' : 'Demo'}
+                  </span>
+                </div>
                 <span className="panel-subtitle">{selectedField.area} ჰა • {selectedField.crop || 'კულტურა არ არის'}</span>
+                {dataError && (
+                  <div className="data-error">
+                    <AlertCircle size={14} />
+                    <span>{dataError}</span>
+                  </div>
+                )}
               </div>
               <div className="panel-content">
                 <div className="data-grid">

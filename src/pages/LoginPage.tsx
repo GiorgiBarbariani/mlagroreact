@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { Input } from '../components/common/Input';
 import './LoginPage.scss';
 
 const LoginPage: React.FC = () => {
@@ -71,37 +73,29 @@ const LoginPage: React.FC = () => {
               <div className="error-message">{errors.general}</div>
             )}
 
-            <div className="form-group">
-              <label htmlFor="email">ელ.ფოსტა</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="შეიყვანეთ ელ.ფოსტა"
-                className={errors.email ? 'error' : ''}
-              />
-              {errors.email && (
-                <span className="field-error">{errors.email}</span>
-              )}
-            </div>
+            <Input
+              label="ელ.ფოსტა"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="შეიყვანეთ ელ.ფოსტა"
+              leftIcon={<Mail size={18} />}
+              error={errors.email}
+              required
+            />
 
-            <div className="form-group">
-              <label htmlFor="password">პაროლი</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="შეიყვანეთ პაროლი"
-                className={errors.password ? 'error' : ''}
-              />
-              {errors.password && (
-                <span className="field-error">{errors.password}</span>
-              )}
-            </div>
+            <Input
+              label="პაროლი"
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="შეიყვანეთ პაროლი"
+              leftIcon={<Lock size={18} />}
+              error={errors.password}
+              required
+            />
 
             <div className="form-options">
               <label className="checkbox-label">

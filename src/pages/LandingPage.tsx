@@ -23,7 +23,7 @@ const LandingPage: React.FC = () => {
               შესვლა
             </button>
             <button onClick={() => navigate('/register')} className="btn-register">
-              დაწყება
+              რეგისტრაცია
             </button>
           </div>
         </div>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { User, Mail, Lock, Phone, AtSign } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { Input } from '../components/common/Input';
 import './RegistrationPage.scss';
 
 const RegistrationPage: React.FC = () => {
@@ -19,50 +21,67 @@ const RegistrationPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  const validateField = (name: string, value: string): string => {
+    switch (name) {
+      case 'firstName':
+        if (!value) return 'სახელი აუცილებელია';
+        if (value.length < 3) return 'მინიმუმ 3 სიმბოლო';
+        return '';
+      case 'lastName':
+        if (!value) return 'გვარი აუცილებელია';
+        if (value.length < 3) return 'მინიმუმ 3 სიმბოლო';
+        return '';
+      case 'username':
+        if (!value) return 'მომხმარებლის სახელი აუცილებელია';
+        if (value.length < 3) return 'მინიმუმ 3 სიმბოლო';
+        return '';
+      case 'email':
+        if (!value) return 'ელ.ფოსტა აუცილებელია';
+        if (!/\S+@\S+\.\S+/.test(value)) return 'არასწორი ელ.ფოსტის ფორმატი';
+        return '';
+      case 'password':
+        if (!value) return 'პაროლი აუცილებელია';
+        if (value.length < 6) return 'მინიმუმ 6 სიმბოლო';
+        return '';
+      case 'confirmPassword':
+        if (!value) return 'გაიმეორეთ პაროლი';
+        if (value !== formData.password) return 'პაროლები არ ემთხვევა';
+        return '';
+      case 'phone':
+        if (!value) return 'ტელეფონის ნომერი აუცილებელია';
+        if (value.length < 9) return 'მინიმუმ 9 ციფრი';
+        return '';
+      default:
+        return '';
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+
+    // Remove numbers from firstName and lastName
+    let processedValue = value;
+    if (name === 'firstName' || name === 'lastName') {
+      processedValue = value.replace(/[0-9]/g, '');
     }
+
+    setFormData(prev => ({ ...prev, [name]: processedValue }));
+
+    // Real-time validation
+    const error = validateField(name, processedValue);
+    setErrors(prev => ({ ...prev, [name]: error }));
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+    const fields = ['firstName', 'lastName', 'username', 'email', 'password', 'confirmPassword', 'phone'];
 
-    if (!formData.firstName) {
-      newErrors.firstName = 'სახელი აუცილებელია';
-    }
-
-    if (!formData.lastName) {
-      newErrors.lastName = 'გვარი აუცილებელია';
-    }
-
-    if (!formData.username) {
-      newErrors.username = 'მომხმარებლის სახელი აუცილებელია';
-    }
-
-    if (!formData.email) {
-      newErrors.email = 'ელ.ფოსტა აუცილებელია';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'არასწორი ელ.ფოსტის ფორმატი';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'პაროლი აუცილებელია';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'პაროლი უნდა იყოს მინიმუმ 6 სიმბოლო';
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'გაიმეორეთ პაროლი';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'პაროლები არ ემთხვევა';
-    }
-
-    if (!formData.phone) {
-      newErrors.phone = 'ტელეფონის ნომერი აუცილებელია';
-    }
+    fields.forEach(field => {
+      const error = validateField(field, formData[field as keyof typeof formData]);
+      if (error) {
+        newErrors[field] = error;
+      }
+    });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -104,8 +123,33 @@ const RegistrationPage: React.FC = () => {
         }, 1000);
       }
     } catch (error: any) {
+      // Translate common backend errors to Georgian
+      const backendError = error.response?.data?.error || error.response?.data?.message || '';
+      let georgianError = 'რეგისტრაცია ვერ მოხერხდა. სცადეთ თავიდან.';
+
+      if (backendError.toLowerCase().includes('user already exists') ||
+          backendError.toLowerCase().includes('already exists')) {
+        georgianError = 'მომხმარებელი უკვე არსებობს';
+      } else if (backendError.toLowerCase().includes('email already') ||
+                 backendError.toLowerCase().includes('email is already')) {
+        georgianError = 'ელ.ფოსტა უკვე გამოყენებულია';
+      } else if (backendError.toLowerCase().includes('username already') ||
+                 backendError.toLowerCase().includes('username is already')) {
+        georgianError = 'მომხმარებლის სახელი უკვე გამოყენებულია';
+      } else if (backendError.toLowerCase().includes('phone already') ||
+                 backendError.toLowerCase().includes('phone is already')) {
+        georgianError = 'ტელეფონის ნომერი უკვე გამოყენებულია';
+      } else if (backendError.toLowerCase().includes('invalid email')) {
+        georgianError = 'არასწორი ელ.ფოსტის ფორმატი';
+      } else if (backendError.toLowerCase().includes('password')) {
+        georgianError = 'პაროლი არასწორია ან ძალიან სუსტია';
+      } else if (backendError.toLowerCase().includes('network') ||
+                 backendError.toLowerCase().includes('connection')) {
+        georgianError = 'ქსელის შეცდომა. შეამოწმეთ ინტერნეტ კავშირი.';
+      }
+
       setErrors({
-        general: error.response?.data?.error || 'რეგისტრაცია ვერ მოხერხდა. სცადეთ თავიდან.'
+        general: georgianError
       });
     } finally {
       setIsLoading(false);
@@ -131,122 +175,94 @@ const RegistrationPage: React.FC = () => {
             )}
 
             <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="firstName">სახელი *</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  placeholder="შეიყვანეთ სახელი"
-                  className={errors.firstName ? 'error' : ''}
-                />
-                {errors.firstName && (
-                  <span className="field-error">{errors.firstName}</span>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="lastName">გვარი *</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  placeholder="შეიყვანეთ გვარი"
-                  className={errors.lastName ? 'error' : ''}
-                />
-                {errors.lastName && (
-                  <span className="field-error">{errors.lastName}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="username">მომხმარებლის სახელი *</label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  placeholder="მომხმარებლის სახელი"
-                  className={errors.username ? 'error' : ''}
-                />
-                {errors.username && (
-                  <span className="field-error">{errors.username}</span>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="phone">ტელეფონი *</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+995 5XX XXX XXX"
-                  className={errors.phone ? 'error' : ''}
-                />
-                {errors.phone && (
-                  <span className="field-error">{errors.phone}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="email">ელ.ფოსტა *</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
+              <Input
+                label="სახელი"
+                type="text"
+                name="firstName"
+                value={formData.firstName}
                 onChange={handleChange}
-                placeholder="your@email.ge"
-                className={errors.email ? 'error' : ''}
+                placeholder="შეიყვანეთ სახელი"
+                leftIcon={<User size={18} />}
+                error={errors.firstName}
+                required
               />
-              {errors.email && (
-                <span className="field-error">{errors.email}</span>
-              )}
+
+              <Input
+                label="გვარი"
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="შეიყვანეთ გვარი"
+                leftIcon={<User size={18} />}
+                error={errors.lastName}
+                required
+              />
             </div>
 
+            <div className="form-row">
+              <Input
+                label="მომხმარებლის სახელი"
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="მომხმარებლის სახელი"
+                leftIcon={<AtSign size={18} />}
+                error={errors.username}
+                required
+              />
+
+              <Input
+                label="ტელეფონი"
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="+995 5XX XXX XXX"
+                leftIcon={<Phone size={18} />}
+                error={errors.phone}
+                required
+              />
+            </div>
+
+            <Input
+              label="ელ.ფოსტა"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="your@email.ge"
+              leftIcon={<Mail size={18} />}
+              error={errors.email}
+              required
+            />
 
             <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="password">პაროლი *</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="მინიმუმ 6 სიმბოლო"
-                  className={errors.password ? 'error' : ''}
-                />
-                {errors.password && (
-                  <span className="field-error">{errors.password}</span>
-                )}
-              </div>
+              <Input
+                label="პაროლი"
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="მინიმუმ 6 სიმბოლო"
+                leftIcon={<Lock size={18} />}
+                error={errors.password}
+                helperText={!errors.password ? "მინიმუმ 6 სიმბოლო" : undefined}
+                required
+              />
 
-              <div className="form-group">
-                <label htmlFor="confirmPassword">გაიმეორეთ პაროლი *</label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="გაიმეორეთ პაროლი"
-                  className={errors.confirmPassword ? 'error' : ''}
-                />
-                {errors.confirmPassword && (
-                  <span className="field-error">{errors.confirmPassword}</span>
-                )}
-              </div>
+              <Input
+                label="გაიმეორეთ პაროლი"
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="გაიმეორეთ პაროლი"
+                leftIcon={<Lock size={18} />}
+                error={errors.confirmPassword}
+                required
+              />
             </div>
 
             <div className="form-options">

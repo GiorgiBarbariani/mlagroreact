@@ -1,0 +1,310 @@
+@use '../../../styles/variables' as *;
+
+// Input container
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+
+  &--full-width {
+    width: 100%;
+  }
+
+  &--disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+// Label styles
+.input-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+   margin-bottom: 2px;
+   color: black;
+
+  &__required {
+    color: $error-color;
+    margin-left: 2px;
+  }
+}
+
+// Input wrapper for icons
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+// Icon styles
+.input-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $gray-500;
+  pointer-events: none;
+  z-index: 1;
+
+  &--left {
+    left: 12px;
+  }
+
+  &--right {
+    right: 12px;
+  }
+
+  &--clickable {
+    pointer-events: auto;
+    cursor: pointer;
+    background: white;
+    border: none;
+    padding: 4px;
+    border-radius: $border-radius-sm;
+    transition: color 0.2s, background-color 0.2s;
+    color: $gray-900;
+
+    &:hover {
+      background: $gray-100;
+      color: $gray-900;
+    }
+
+    &:focus {
+      outline: none;
+      color: $gray-900;
+    }
+  }
+
+  &--error {
+    color: $error-color;
+  }
+}
+
+// Base input field styles
+.input-field {
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  color: $gray-900;
+  background-color: white;
+  border: 1px solid $gray-300;
+  border-radius: $border-radius-md;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+
+  &::placeholder {
+    color: $gray-400;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $gray-400;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+  }
+
+  &:disabled {
+    background-color: $gray-100;
+    cursor: not-allowed;
+  }
+
+  // With icons
+  &--with-left-icon {
+    padding-left: 40px;
+  }
+
+  &--with-right-icon {
+    padding-right: 40px;
+  }
+}
+
+// Size variants
+.input-container--sm {
+  .input-field {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: $border-radius-sm;
+  }
+
+  .input-field--with-left-icon {
+    padding-left: 34px;
+  }
+
+  .input-field--with-right-icon {
+    padding-right: 34px;
+  }
+
+  .input-icon {
+    &--left {
+      left: 10px;
+    }
+
+    &--right {
+      right: 10px;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .input-label {
+    font-size: 13px;
+  }
+}
+
+.input-container--md {
+  .input-field {
+    padding: $spacing-sm $spacing-md;
+    font-size: 14px;
+  }
+
+  .input-field--with-left-icon {
+    padding-left: 40px;
+  }
+
+  .input-field--with-right-icon {
+    padding-right: 40px;
+  }
+}
+
+.input-container--lg {
+  .input-field {
+    padding: 12px 16px;
+    font-size: 16px;
+    border-radius: $border-radius-md;
+  }
+
+  .input-field--with-left-icon {
+    padding-left: 48px;
+  }
+
+  .input-field--with-right-icon {
+    padding-right: 48px;
+  }
+
+  .input-icon {
+    &--left {
+      left: 14px;
+    }
+
+    &--right {
+      right: 14px;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .input-label {
+    font-size: 15px;
+  }
+}
+
+// Variant: filled
+.input-container--filled {
+  .input-field {
+    background-color: $gray-100;
+    border-color: transparent;
+
+    &:hover:not(:disabled) {
+      background-color: $gray-200;
+      border-color: transparent;
+    }
+
+    &:focus {
+      background-color: white;
+      border-color: $primary-color;
+    }
+  }
+}
+
+// Error state
+.input-container--error {
+  .input-field {
+    border-color: $error-color;
+
+    &:focus {
+      border-color: $error-color;
+      box-shadow: 0 0 0 3px rgba($error-color, 0.1);
+    }
+  }
+
+  .input-icon--left {
+    color: $error-color;
+  }
+}
+
+// Focused state
+.input-container--focused {
+  .input-label {
+    color: $primary-color;
+  }
+}
+
+// Error message
+.input-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: $error-color;
+  margin-top: 2px;
+}
+
+// Helper text
+.input-helper {
+  font-size: 12px;
+  color: $gray-500;
+  margin-top: 2px;
+}
+
+// Special input types
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  &.input-field {
+    cursor: pointer;
+
+    &::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+input[type="number"] {
+  &.input-field {
+    -moz-appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+}
+
+// Search input specific
+input[type="search"] {
+  &.input-field {
+    &::-webkit-search-cancel-button {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E") center/contain no-repeat;
+      cursor: pointer;
+    }
+  }
+}

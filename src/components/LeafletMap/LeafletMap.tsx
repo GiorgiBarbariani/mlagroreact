@@ -24,6 +24,27 @@ interface Field {
   polygonData?: any;
 }
 
+interface IndexOverlay {
+  fieldId: string;
+  imageUrl: string;
+  bounds: L.LatLngBoundsExpression;
+  opacity?: number;
+}
+
+interface IndexPoint {
+  latitude: number;
+  longitude: number;
+  value: number;
+}
+
+interface IndexPointsConfig {
+  points: IndexPoint[];
+  indexType: string;
+  gradient: string[];
+  minValue: number;
+  maxValue: number;
+}
+
 interface LeafletMapProps {
   fields: Field[];
   selectedField: Field | null;
@@ -34,12 +55,15 @@ interface LeafletMapProps {
   enableDrawing?: boolean;
   cadastralCode?: string;
   onCadastralClick?: (cadastralCode: string, area: number) => void;
+  indexOverlay?: IndexOverlay | null;
+  indexPoints?: IndexPointsConfig | null;
 }
 
 interface LeafletMapRef {
   clearDrawnItems: () => void;
   centerOnField: (field: Field) => void;
   searchCadastralCode: (code: string) => void;
+  setIndexOverlay: (overlay: IndexOverlay | null) => void;
 }
 
 const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
@@ -51,13 +75,17 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
   zoom = 7,
   enableDrawing = true,
   cadastralCode: _cadastralCode,
-  onCadastralClick
+  onCadastralClick,
+  indexOverlay,
+  indexPoints
 }, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup>(new L.FeatureGroup());
   const fieldLayersRef = useRef<Map<string, L.Polygon>>(new Map());
   const cadastralLayerRef = useRef<L.FeatureGroup>(new L.FeatureGroup());
+  const indexOverlayRef = useRef<L.ImageOverlay | null>(null);
+  const indexPointsLayerRef = useRef<L.LayerGroup | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
   useImperativeHandle(ref, () => ({
@@ -73,6 +101,25 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
         if (coords.length > 0) {
           mapInstance.current.setView(coords[0], 15);
         }
+      }
+    },
+    setIndexOverlay: (overlay: IndexOverlay | null) => {
+      if (!mapInstance.current) return;
+
+      // Remove existing overlay
+      if (indexOverlayRef.current) {
+        mapInstance.current.removeLayer(indexOverlayRef.current);
+        indexOverlayRef.current = null;
+      }
+
+      // Add new overlay if provided
+      if (overlay && overlay.imageUrl && overlay.bounds) {
+        const imageOverlay = L.imageOverlay(overlay.imageUrl, overlay.bounds, {
+          opacity: overlay.opacity ?? 0.8,
+          interactive: false
+        });
+        imageOverlay.addTo(mapInstance.current);
+        indexOverlayRef.current = imageOverlay;
       }
     },
     searchCadastralCode: async (code: string) => {
@@ -844,6 +891,93 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
       }
     }
   }, [selectedField]);
+
+  // Handle index overlay changes
+  useEffect(() => {
+    if (!mapInstance.current) return;
+
+    // Remove existing overlay
+    if (indexOverlayRef.current) {
+      mapInstance.current.removeLayer(indexOverlayRef.current);
+      indexOverlayRef.current = null;
+    }
+
+    // Add new overlay if provided
+    if (indexOverlay && indexOverlay.imageUrl && indexOverlay.bounds) {
+      const imageOverlay = L.imageOverlay(indexOverlay.imageUrl, indexOverlay.bounds, {
+        opacity: indexOverlay.opacity ?? 0.8,
+        interactive: false
+      });
+      imageOverlay.addTo(mapInstance.current);
+      indexOverlayRef.current = imageOverlay;
+    }
+  }, [indexOverlay]);
+
+  // Handle index points changes - display as colored markers with hover tooltips
+  useEffect(() => {
+    if (!mapInstance.current) return;
+
+    // Remove existing points layer
+    if (indexPointsLayerRef.current) {
+      mapInstance.current.removeLayer(indexPointsLayerRef.current);
+      indexPointsLayerRef.current = null;
+    }
+
+    // Add new points if provided
+    if (indexPoints && indexPoints.points && indexPoints.points.length > 0) {
+      const pointsLayer = L.layerGroup();
+
+      // Helper function to get color from gradient based on value
+      const getColorForValue = (value: number): string => {
+        const { gradient, minValue, maxValue } = indexPoints;
+        const normalized = (value - minValue) / (maxValue - minValue);
+        const clampedNormalized = Math.max(0, Math.min(1, normalized));
+        const index = Math.floor(clampedNormalized * (gradient.length - 1));
+        const clampedIndex = Math.max(0, Math.min(gradient.length - 1, index));
+        return gradient[clampedIndex];
+      };
+
+      // Sample points to avoid too many markers (max 500)
+      const maxPoints = 500;
+      const step = indexPoints.points.length > maxPoints
+        ? Math.ceil(indexPoints.points.length / maxPoints)
+        : 1;
+
+      for (let i = 0; i < indexPoints.points.length; i += step) {
+        const point = indexPoints.points[i];
+        const color = getColorForValue(point.value);
+
+        const circleMarker = L.circleMarker([point.latitude, point.longitude], {
+          radius: 6,
+          fillColor: color,
+          color: '#fff',
+          weight: 1,
+          opacity: 0.9,
+          fillOpacity: 0.8
+        });
+
+        // Add tooltip with value on hover
+        circleMarker.bindTooltip(
+          `<div style="text-align: center; font-weight: bold;">
+            <span style="font-size: 14px; color: ${color};">${point.value.toFixed(3)}</span>
+            <br/>
+            <span style="font-size: 10px; color: #666;">${indexPoints.indexType.toUpperCase()}</span>
+          </div>`,
+          {
+            permanent: false,
+            direction: 'top',
+            className: 'index-value-tooltip',
+            offset: [0, -5]
+          }
+        );
+
+        pointsLayer.addLayer(circleMarker);
+      }
+
+      pointsLayer.addTo(mapInstance.current);
+      indexPointsLayerRef.current = pointsLayer;
+    }
+  }, [indexPoints]);
 
   return (
     <div className="leaflet-map-container">
