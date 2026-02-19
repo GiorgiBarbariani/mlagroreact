@@ -29,7 +29,7 @@ import { useNavigate } from 'react-router-dom';
 import LeafletMap, { type LeafletMapRef } from '../../components/LeafletMap/LeafletMap';
 import { apiClient } from '../../api/apiClient';
 import { useAuth } from '../../hooks/useAuth';
-import { satelliteService, type TimeSeriesDataPoint, type IndexPoint } from '../../services/satelliteService';
+import { satelliteService, type TimeSeriesDataPoint, type IndexPoint, type HighResolutionOptions } from '../../services/satelliteService';
 import './SatelliteDataPage.scss';
 
 interface Field {
@@ -128,6 +128,18 @@ const satelliteLayers: SatelliteLayer[] = [
     icon: <TrendingUp size={18} />,
     color: '#9C27B0',
     gradient: ['#4A148C', '#7B1FA2', '#AB47BC', '#CE93D8', '#E1BEE7'],
+    unit: '',
+    minValue: -1,
+    maxValue: 1
+  },
+  {
+    id: 'gndvi',
+    name: 'GNDVI',
+    nameKa: 'მწვანე NDVI',
+    description: 'Green Normalized Difference Vegetation Index',
+    icon: <Leaf size={18} />,
+    color: '#00BCD4',
+    gradient: ['#8B4513', '#DEB887', '#B2DFDB', '#4DB6AC', '#00897B', '#004D40'],
     unit: '',
     minValue: -1,
     maxValue: 1
@@ -265,7 +277,7 @@ const SatelliteDataPage: React.FC = () => {
     }
   }, [selectedField, startDate, endDate, activeLayer]);
 
-  // Load index overlay when layer is selected
+  // Load index overlay when layer is selected (only when field or layer changes, not on date changes)
   useEffect(() => {
     if (selectedField && activeLayer) {
       loadIndexOverlay();
@@ -273,7 +285,7 @@ const SatelliteDataPage: React.FC = () => {
       setIndexOverlay(null);
       setIndexPoints(null);
     }
-  }, [selectedField, activeLayer, selectedImageDate]);
+  }, [selectedField, activeLayer]);
 
   const loadIndexOverlay = async () => {
     if (!selectedField || !activeLayer) {
@@ -324,15 +336,21 @@ const SatelliteDataPage: React.FC = () => {
       // Get the active layer info for gradient colors
       const layerInfo = satelliteLayers.find(l => l.id === activeLayer);
 
-      // Fetch index image and points in parallel
-      const [imageUrl, points] = await Promise.all([
-        satelliteService.getIndexImageUrl(
-          selectedField.id,
-          activeLayer,
-          selectedImageDate || undefined
-        ),
-        satelliteService.getIndexPoints(selectedField.id, activeLayer)
-      ]);
+      // Optimized settings - image shows full data, points are for hover values
+      const highResOptions: HighResolutionOptions = {
+        resolution: 0,      // Auto-calculate for Sentinel-2 native 10m accuracy
+        maxPoints: 500,     // Limit points for performance (image shows full coverage)
+        maxCloudCover: 30
+      };
+
+      // Fetch only the image overlay (points not needed - image shows full NDVI data)
+      // Don't pass date - let the API use the most recent available image
+      const imageUrl = await satelliteService.getIndexImageUrl(
+        selectedField.id,
+        activeLayer,
+        undefined,  // No date - use most recent
+        highResOptions
+      );
 
       if (imageUrl) {
         setIndexOverlay({
@@ -345,18 +363,8 @@ const SatelliteDataPage: React.FC = () => {
         setIndexOverlay(null);
       }
 
-      // Set index points for hover display
-      if (points && points.length > 0 && layerInfo) {
-        setIndexPoints({
-          points,
-          indexType: activeLayer,
-          gradient: layerInfo.gradient,
-          minValue: layerInfo.minValue,
-          maxValue: layerInfo.maxValue
-        });
-      } else {
-        setIndexPoints(null);
-      }
+      // Don't show points - the image overlay provides the full NDVI visualization
+      setIndexPoints(null);
     } catch (error) {
       console.error('Error loading index overlay:', error);
       setIndexOverlay(null);
@@ -415,9 +423,16 @@ const SatelliteDataPage: React.FC = () => {
       setDataLoading(true);
       setDataError(null);
 
-      // Try to fetch real satellite data from backend
+      // High-resolution options for accurate per-coordinate data (like cropmonitoring)
+      const highResOptions: HighResolutionOptions = {
+        resolution: 1024,   // Higher resolution for better accuracy
+        maxPoints: 0,       // Get all points for per-coordinate accuracy
+        maxCloudCover: 30
+      };
+
+      // Try to fetch real satellite data from backend with high-resolution
       const [fieldIndices, timeSeries] = await Promise.all([
-        satelliteService.getFieldIndices(selectedField.id),
+        satelliteService.getFieldIndices(selectedField.id, highResOptions),
         activeLayer ? satelliteService.getTimeSeries(selectedField.id, activeLayer, startDate, endDate) : Promise.resolve([])
       ]);
 
@@ -800,40 +815,7 @@ const SatelliteDataPage: React.FC = () => {
             </div>
           )}
 
-          {/* Image Timeline */}
-          {selectedField && satelliteImages.length > 0 && (
-            <div className="image-timeline">
-              <div className="timeline-header">
-                <ImageIcon size={16} />
-                <span>სატელიტური სურათები</span>
-                <button
-                  className={`play-btn ${isPlaying ? 'active' : ''}`}
-                  onClick={() => setIsPlaying(!isPlaying)}
-                >
-                  {isPlaying ? <Pause size={14} /> : <Play size={14} />}
-                </button>
-              </div>
-              <div className="timeline-track">
-                {satelliteImages.slice(0, 12).map((img, index) => (
-                  <button
-                    key={img.date}
-                    className={`timeline-item ${selectedImageDate === img.date ? 'active' : ''} ${!img.available ? 'unavailable' : ''}`}
-                    onClick={() => img.available && setSelectedImageDate(img.date)}
-                    title={`${img.date} - ${img.source}`}
-                  >
-                    <div className="item-dot" />
-                    {index % 3 === 0 && (
-                      <span className="item-date">{new Date(img.date).toLocaleDateString('ka-GE', { month: 'short', day: 'numeric' })}</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-              <div className="timeline-info">
-                <span>{selectedImageDate && new Date(selectedImageDate).toLocaleDateString('ka-GE')}</span>
-                <span className="source">{satelliteImages.find(i => i.date === selectedImageDate)?.source}</span>
-              </div>
-            </div>
-          )}
+
 
           {/* Data Panel - Bottom Right */}
           {selectedField && satelliteData && (

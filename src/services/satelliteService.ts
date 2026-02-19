@@ -60,15 +60,36 @@ export interface TimeSeriesDataPoint {
   value: number;
 }
 
+// High resolution options for accurate per-coordinate data (like cropmonitoring)
+export interface HighResolutionOptions {
+  resolution?: number;  // Image resolution (default 512, max 2048)
+  maxPoints?: number;   // Max points to extract (default 500, set to 0 for all points)
+  maxCloudCover?: number; // Max cloud cover percentage (default 20)
+  date?: string;        // Specific date (YYYY-MM-DD)
+}
+
+// Default settings - image overlay shows full data, points are for hover values
+const DEFAULT_HIGH_RES_OPTIONS: HighResolutionOptions = {
+  resolution: 0,        // 0 = auto-calculate for Sentinel-2 native 10m accuracy
+  maxPoints: 500,       // Limit points for performance (image shows full coverage)
+  maxCloudCover: 30
+};
+
 class SatelliteService {
   /**
-   * Get NDVI points for a field
+   * Get NDVI points for a field with high resolution (like cropmonitoring)
    * Uses the Copernicus/Sentinel-2 integration in the backend
    * Endpoint: GET /api/cropMonitoring/NdviPoint/GetByFieldId?fieldId=xxx
    */
-  async getNdviPoints(fieldId: string): Promise<IndexPoint[]> {
+  async getNdviPoints(fieldId: string, options: HighResolutionOptions = DEFAULT_HIGH_RES_OPTIONS): Promise<IndexPoint[]> {
     try {
-      const url = `/cropMonitoring/NdviPoint/GetByFieldId?fieldId=${fieldId}`;
+      const params = new URLSearchParams({ fieldId });
+      if (options.resolution) params.append('resolution', options.resolution.toString());
+      if (options.maxPoints !== undefined) params.append('maxPoints', options.maxPoints.toString());
+      if (options.maxCloudCover) params.append('maxCloudCover', options.maxCloudCover.toString());
+      if (options.date) params.append('date', options.date);
+
+      const url = `/cropMonitoring/NdviPoint/GetByFieldId?${params.toString()}`;
       const response = await apiClient.get(url);
       // Backend returns array of points directly
       if (Array.isArray(response.data)) {
@@ -115,9 +136,10 @@ class SatelliteService {
   /**
    * Get index points for a field (array of lat/lng/value)
    * These can be used to show values on hover
+   * Now with high-resolution support for accurate per-coordinate data (like cropmonitoring)
    * Endpoint: GET /api/cropMonitoring/:indexType/GetByFieldId?fieldId=xxx
    */
-  async getIndexPoints(fieldId: string, indexType: string = 'ndvi'): Promise<IndexPoint[]> {
+  async getIndexPoints(fieldId: string, indexType: string = 'ndvi', options: HighResolutionOptions = DEFAULT_HIGH_RES_OPTIONS): Promise<IndexPoint[]> {
     try {
       // Map index type to correct endpoint name
       const indexMap: Record<string, string> = {
@@ -130,7 +152,15 @@ class SatelliteService {
       };
 
       const endpointName = indexMap[indexType.toLowerCase()] || `${indexType.charAt(0).toUpperCase() + indexType.slice(1)}Point`;
-      const url = `/cropMonitoring/${endpointName}/GetByFieldId?fieldId=${fieldId}`;
+
+      // Build URL with high-resolution parameters
+      const params = new URLSearchParams({ fieldId });
+      if (options.resolution) params.append('resolution', options.resolution.toString());
+      if (options.maxPoints !== undefined) params.append('maxPoints', options.maxPoints.toString());
+      if (options.maxCloudCover) params.append('maxCloudCover', options.maxCloudCover.toString());
+      if (options.date) params.append('date', options.date);
+
+      const url = `/cropMonitoring/${endpointName}/GetByFieldId?${params.toString()}`;
 
       const response = await apiClient.get(url);
       console.log(`Raw ${indexType} points response:`, response.data);
@@ -167,9 +197,10 @@ class SatelliteService {
   /**
    * Get any vegetation index image overlay for a field
    * Supported indices: ndvi, ndmi, msavi, ndre, gndvi
+   * Now with high-resolution support for accurate imagery (like cropmonitoring)
    * Endpoint: GET /api/cropMonitoring/:indexType/Image/GetByFieldId?fieldId=xxx
    */
-  async getIndexImageUrl(fieldId: string, indexType: string, _date?: string): Promise<string | null> {
+  async getIndexImageUrl(fieldId: string, indexType: string, date?: string, options: HighResolutionOptions = DEFAULT_HIGH_RES_OPTIONS): Promise<string | null> {
     try {
       // Map index type to correct endpoint name
       const indexMap: Record<string, string> = {
@@ -182,7 +213,14 @@ class SatelliteService {
       };
 
       const endpointName = indexMap[indexType.toLowerCase()] || `${indexType.charAt(0).toUpperCase() + indexType.slice(1)}Image`;
-      const url = `/cropMonitoring/${endpointName}/GetByFieldId?fieldId=${fieldId}`;
+
+      // Build URL with high-resolution parameters
+      const params = new URLSearchParams({ fieldId });
+      if (options.resolution) params.append('resolution', options.resolution.toString());
+      if (options.maxCloudCover) params.append('maxCloudCover', options.maxCloudCover.toString());
+      if (date) params.append('date', date);
+
+      const url = `/cropMonitoring/${endpointName}/GetByFieldId?${params.toString()}`;
 
       const response = await apiClient.get(url, { responseType: 'blob' });
       const blob = new Blob([response.data], { type: 'image/png' });
@@ -196,11 +234,12 @@ class SatelliteService {
   /**
    * Get all satellite indices for a field
    * Fetches NDVI points and calculates statistics
+   * Uses high-resolution options for accurate data (like cropmonitoring)
    */
-  async getFieldIndices(fieldId: string): Promise<FieldSatelliteData | null> {
+  async getFieldIndices(fieldId: string, options: HighResolutionOptions = DEFAULT_HIGH_RES_OPTIONS): Promise<FieldSatelliteData | null> {
     try {
-      // Get NDVI points and calculate statistics
-      const ndviPoints = await this.getNdviPoints(fieldId);
+      // Get NDVI points with high resolution and calculate statistics
+      const ndviPoints = await this.getNdviPoints(fieldId, options);
 
       if (ndviPoints && ndviPoints.length > 0) {
         const values = ndviPoints.map(p => p.value);

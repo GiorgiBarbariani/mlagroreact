@@ -236,6 +236,22 @@
   }
 }
 
+// Index tooltip for CircleMarker hover (cropmonitoring style)
+.index-tooltip {
+  background: rgba(0, 0, 0, 0.85);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 6px 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+  &::before {
+    border-top-color: rgba(0, 0, 0, 0.85);
+  }
+}
+
 // Hide labels at low zoom levels
 .leaflet-container {
   .city-label-regular {

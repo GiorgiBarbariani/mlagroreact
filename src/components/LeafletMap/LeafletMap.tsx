@@ -892,9 +892,28 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
     }
   }, [selectedField]);
 
-  // Handle index overlay changes
+  // Handle index overlay changes - stable through zoom/pan/opacity events
+  const lastOverlayUrlRef = useRef<string | null>(null);
+  const lastOverlayBoundsRef = useRef<string | null>(null);
+
+  // Update opacity without removing overlay
+  useEffect(() => {
+    if (indexOverlayRef.current && indexOverlay) {
+      indexOverlayRef.current.setOpacity(indexOverlay.opacity ?? 0.8);
+    }
+  }, [indexOverlay?.opacity]);
+
+  // Only recreate overlay when URL or bounds change
   useEffect(() => {
     if (!mapInstance.current) return;
+
+    const newUrl = indexOverlay?.imageUrl || null;
+    const newBounds = indexOverlay?.bounds ? JSON.stringify(indexOverlay.bounds) : null;
+
+    // Skip if nothing important changed
+    if (newUrl === lastOverlayUrlRef.current && newBounds === lastOverlayBoundsRef.current) {
+      return;
+    }
 
     // Remove existing overlay
     if (indexOverlayRef.current) {
@@ -906,12 +925,19 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
     if (indexOverlay && indexOverlay.imageUrl && indexOverlay.bounds) {
       const imageOverlay = L.imageOverlay(indexOverlay.imageUrl, indexOverlay.bounds, {
         opacity: indexOverlay.opacity ?? 0.8,
-        interactive: false
+        interactive: false,
+        zIndex: 500
       });
       imageOverlay.addTo(mapInstance.current);
       indexOverlayRef.current = imageOverlay;
+      lastOverlayUrlRef.current = indexOverlay.imageUrl;
+      lastOverlayBoundsRef.current = JSON.stringify(indexOverlay.bounds);
+      console.log('NDVI overlay added');
+    } else {
+      lastOverlayUrlRef.current = null;
+      lastOverlayBoundsRef.current = null;
     }
-  }, [indexOverlay]);
+  }, [indexOverlay?.imageUrl, indexOverlay?.bounds?.[0]?.[0], indexOverlay?.bounds?.[1]?.[1]]);
 
   // Handle index points changes - display as colored markers with hover tooltips
   useEffect(() => {
@@ -923,7 +949,7 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
       indexPointsLayerRef.current = null;
     }
 
-    // Add new points if provided
+    // Add new points if provided - OPTIMIZED for performance
     if (indexPoints && indexPoints.points && indexPoints.points.length > 0) {
       const pointsLayer = L.layerGroup();
 
@@ -937,14 +963,17 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
         return gradient[clampedIndex];
       };
 
-      // Sample points to avoid too many markers (max 200 for performance)
-      const maxPoints = 200;
-      const step = indexPoints.points.length > maxPoints
-        ? Math.ceil(indexPoints.points.length / maxPoints)
-        : 1;
+      // PERFORMANCE OPTIMIZATION: Limit points to prevent browser crash
+      // The image overlay shows the full data, points are just for hover values
+      const MAX_POINTS = 300; // Maximum points to render for performance
+      const totalPoints = indexPoints.points.length;
+      const step = totalPoints > MAX_POINTS ? Math.ceil(totalPoints / MAX_POINTS) : 1;
+      const pointsToRender = Math.min(totalPoints, MAX_POINTS);
 
-      let addedPoints = 0;
-      for (let i = 0; i < indexPoints.points.length; i += step) {
+      console.log(`Rendering ${pointsToRender} of ${totalPoints} points (step: ${step})`);
+
+      let renderedCount = 0;
+      for (let i = 0; i < indexPoints.points.length && renderedCount < MAX_POINTS; i += step) {
         const point = indexPoints.points[i];
 
         // Skip points with invalid coordinates
@@ -958,33 +987,29 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
         const color = getColorForValue(value);
         const valueStr = value.toFixed(2);
 
-        // Create a div icon marker that shows value on hover
-        const icon = L.divIcon({
-          className: 'index-point-marker',
-          html: `
-            <div class="index-dot" style="background-color: ${color}; border-color: ${color};">
-              <div class="index-value-label" style="background-color: ${color};">
-                ${valueStr}
-                <span class="index-type">${indexPoints.indexType.toUpperCase()}</span>
-              </div>
-            </div>
-          `,
-          iconSize: [16, 16],
-          iconAnchor: [8, 8]
+        // Small circle markers - the image overlay shows the actual visualization
+        const marker = L.circleMarker([point.latitude, point.longitude], {
+          radius: 6,
+          fillColor: color,
+          color: '#fff',
+          weight: 1,
+          opacity: 0.8,
+          fillOpacity: 0.9
         });
 
-        const marker = L.marker([point.latitude, point.longitude], {
-          icon: icon,
-          interactive: true,
-          pane: 'indexPointsPane'
+        // Add tooltip for hover
+        marker.bindTooltip(`${indexPoints.indexType.toUpperCase()}: ${valueStr}`, {
+          permanent: false,
+          direction: 'top',
+          className: 'index-tooltip'
         });
 
         pointsLayer.addLayer(marker);
-        addedPoints++;
+        renderedCount++;
       }
 
       pointsLayer.addTo(mapInstance.current);
-      console.log(`Added ${addedPoints} index points to map`);
+      console.log(`Added ${renderedCount} index points to map`);
       indexPointsLayerRef.current = pointsLayer;
     }
   }, [indexPoints]);
