@@ -283,50 +283,6 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
       maxZoom: 20
     });
 
-    // Regional boundaries layer with GeoJSON data
-    const regionBordersLayer = L.geoJSON(georgiaRegionsGeoJSON as any, {
-      style: (feature: any) => {
-        const regionCode = feature?.properties?.code || '';
-        return {
-          color: getRegionColor(regionCode),
-          weight: 2.5,
-          opacity: 0.9,
-          fillColor: 'transparent',
-          fillOpacity: 0,
-          dashArray: '5, 5'
-        };
-      },
-      onEachFeature: (feature: any, layer: any) => {
-        const props = feature.properties;
-        if (props) {
-          // Add popup with region info
-          layer.bindPopup(`
-            <div style="text-align: center; min-width: 120px;">
-              <strong style="font-size: 14px;">${props.nameKa}</strong><br/>
-              <span style="color: #666;">${props.name}</span><br/>
-              <hr style="margin: 5px 0;"/>
-              <small>დედაქალაქი: ${props.capitalKa}</small>
-            </div>
-          `);
-
-          // Highlight on hover
-          layer.on({
-            mouseover: (e: any) => {
-              const target = e.target;
-              target.setStyle({
-                weight: 4,
-                dashArray: ''
-              });
-              target.bringToFront();
-            },
-            mouseout: (e: any) => {
-              regionBordersLayer.resetStyle(e.target);
-            }
-          });
-        }
-      }
-    });
-
     // Add region labels layer
     const regionLabelsLayer = L.layerGroup();
     georgiaRegionsGeoJSON.features.forEach(feature => {
@@ -376,7 +332,6 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
     };
 
     const overlayMaps: Record<string, L.Layer> = {
-      'რეგიონების საზღვრები': regionBordersLayer,
       'რეგიონების სახელები': regionLabelsLayer,
       'საკადასტრო ნაკვეთები': cadastralLayer,
       'საკადასტრო ნომრები': cadastralTileLayer,
@@ -387,8 +342,7 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
 
     L.control.layers(baseMaps, overlayMaps).addTo(map);
 
-    // Add region borders and labels by default
-    regionBordersLayer.addTo(map);
+    // Add region labels by default
     regionLabelsLayer.addTo(map);
 
     // Add layers by default
@@ -421,18 +375,6 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
         }
       }
 
-      // Adjust region border opacity based on zoom
-      if (currentZoom > 10) {
-        regionBordersLayer.setStyle({
-          opacity: 0.4,
-          fillOpacity: 0
-        });
-      } else {
-        regionBordersLayer.setStyle({
-          opacity: 0.9,
-          fillOpacity: 0
-        });
-      }
     });
 
     // Function to load cadastral codes for visible area

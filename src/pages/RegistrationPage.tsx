@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Lock, AtSign } from 'lucide-react';
+import { User, Mail, Lock, AtSign, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Input } from '../components/common/Input';
 import './RegistrationPage.scss';
@@ -19,7 +19,6 @@ const RegistrationPage: React.FC = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
 
   const validateField = (name: string, value: string): string => {
     switch (name) {
@@ -111,23 +110,9 @@ const RegistrationPage: React.FC = () => {
       });
 
       if (response.success) {
-        setSuccessMessage('რეგისტრაცია წარმატებით დასრულდა! გთხოვთ შეამოწმოთ თქვენი ელ.ფოსტა.');
-        // Store email for verification page
+        // Store email and redirect immediately to verification page
         const userEmail = formData.email;
-        // Clear form
-        setFormData({
-          firstName: '',
-          lastName: '',
-          username: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-          phone: ''
-        });
-        // Redirect to email verification page after 1 second
-        setTimeout(() => {
-          navigate('/verify-email', { state: { email: userEmail } });
-        }, 1000);
+        navigate('/verify-email', { state: { email: userEmail } });
       }
     } catch (error: any) {
       // Translate common backend errors to Georgian
@@ -173,10 +158,7 @@ const RegistrationPage: React.FC = () => {
             <p>შექმენით ახალი ანგარიში</p>
           </div>
 
-          <form className="registration-form" onSubmit={handleSubmit}>
-            {successMessage && (
-              <div className="success-message">{successMessage}</div>
-            )}
+          <form className="registration-form" onSubmit={handleSubmit} autoComplete="off">
             {errors.general && (
               <div className="error-message">{errors.general}</div>
             )}
@@ -266,6 +248,7 @@ const RegistrationPage: React.FC = () => {
                 error={errors.password}
                 helperText={!errors.password ? "მინიმუმ 6 სიმბოლო" : undefined}
                 required
+                autoComplete="new-password"
               />
 
               <Input
@@ -278,6 +261,7 @@ const RegistrationPage: React.FC = () => {
                 leftIcon={<Lock size={18} />}
                 error={errors.confirmPassword}
                 required
+                autoComplete="new-password"
               />
             </div>
 
@@ -293,7 +277,12 @@ const RegistrationPage: React.FC = () => {
               className="btn-submit"
               disabled={isLoading}
             >
-              {isLoading ? 'რეგისტრაცია...' : 'რეგისტრაცია'}
+              {isLoading ? (
+                <>
+                  <Loader2 size={18} className="spinner" />
+                  <span>რეგისტრაცია...</span>
+                </>
+              ) : 'რეგისტრაცია'}
             </button>
           </form>
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Loader2, CheckCircle } from 'lucide-react';
 import { apiClient } from '../api/apiClient';
 import './VerifyEmailPage.scss';
 
@@ -11,7 +12,7 @@ const VerifyEmailPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
 
   useEffect(() => {
@@ -91,7 +92,7 @@ const VerifyEmailPage: React.FC = () => {
       });
 
       if (response.data.success) {
-        setSuccessMessage('ელ.ფოსტა წარმატებით დადასტურდა!');
+        setIsVerified(true);
 
         // Store token and companyId
         if (response.data.token) {
@@ -103,10 +104,10 @@ const VerifyEmailPage: React.FC = () => {
             console.log('Company ID stored:', response.data.companyId);
           }
 
-          // Redirect to main app
+          // Redirect to main app after showing success
           setTimeout(() => {
-            window.location.href = '/app/main-menu'; // Use window.location to ensure full reload and auth check
-          }, 1500);
+            window.location.href = '/app/main-menu';
+          }, 2000);
         }
       }
     } catch (error: any) {
@@ -126,9 +127,11 @@ const VerifyEmailPage: React.FC = () => {
       const response = await apiClient.post('/auth/resend-verification', { email });
 
       if (response.data.success) {
-        setSuccessMessage('ახალი კოდი გაიგზავნა თქვენს ელ.ფოსტაზე');
+        setError(''); // Clear any errors
         setResendTimer(60); // 60 seconds before can resend again
         setVerificationCode(['', '', '', '', '', '']);
+        // Show temporary message by using error field (we'll style it differently)
+        alert('ახალი კოდი გაიგზავნა თქვენს ელ.ფოსტაზე');
       }
     } catch (error: any) {
       setError(error.response?.data?.error || 'კოდის გაგზავნა ვერ მოხერხდა');
@@ -136,6 +139,27 @@ const VerifyEmailPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  // Show success screen after verification
+  if (isVerified) {
+    return (
+      <div className="verify-email-page">
+        <div className="verify-container">
+          <div className="verify-card success-card">
+            <div className="success-screen">
+              <CheckCircle size={64} className="success-icon" />
+              <h2>რეგისტრაცია წარმატებით დასრულდა!</h2>
+              <p>თქვენ წარმატებით დარეგისტრირდით MLAgro-ზე</p>
+              <div className="redirect-message">
+                <Loader2 size={20} className="spinner" />
+                <span>გადამისამართება...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="verify-email-page">
@@ -149,9 +173,6 @@ const VerifyEmailPage: React.FC = () => {
           </div>
 
           <form className="verify-form" onSubmit={handleSubmit}>
-            {successMessage && (
-              <div className="success-message">{successMessage}</div>
-            )}
             {error && (
               <div className="error-message">{error}</div>
             )}
@@ -179,7 +200,12 @@ const VerifyEmailPage: React.FC = () => {
               className="btn-submit"
               disabled={isLoading || verificationCode.join('').length !== 6}
             >
-              {isLoading ? 'დადასტურება...' : 'დადასტურება'}
+              {isLoading ? (
+                <>
+                  <Loader2 size={18} className="spinner" />
+                  <span>მოწმდება...</span>
+                </>
+              ) : 'დადასტურება'}
             </button>
           </form>
 

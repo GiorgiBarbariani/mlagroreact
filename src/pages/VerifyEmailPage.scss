@@ -104,11 +104,66 @@
           color: white;
           padding: $spacing-md;
           font-size: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: $spacing-sm;
+
+          .spinner {
+            animation: spin 1s linear infinite;
+          }
 
           &:disabled {
             background: $gray-400;
             cursor: not-allowed;
           }
+        }
+      }
+
+      // Success screen styles
+      &.success-card {
+        .success-screen {
+          text-align: center;
+          padding: $spacing-xl 0;
+
+          .success-icon {
+            color: $success-color;
+            margin-bottom: $spacing-lg;
+          }
+
+          h2 {
+            color: $gray-900;
+            font-size: 24px;
+            margin-bottom: $spacing-md;
+          }
+
+          p {
+            color: $gray-600;
+            font-size: 16px;
+            margin-bottom: $spacing-xl;
+          }
+
+          .redirect-message {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: $spacing-sm;
+            color: $gray-500;
+            font-size: 14px;
+
+            .spinner {
+              animation: spin 1s linear infinite;
+            }
+          }
+        }
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
         }
       }
 

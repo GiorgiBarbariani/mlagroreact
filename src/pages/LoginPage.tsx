@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Input } from '../components/common/Input';
 import './LoginPage.scss';
@@ -50,9 +50,29 @@ const LoginPage: React.FC = () => {
       await login(formData.email, formData.password);
       navigate('/app/main-menu');
     } catch (error: any) {
-      setErrors({
-        general: error.response?.data?.message || 'შესვლა ვერ მოხერხდა. სცადეთ თავიდან.'
-      });
+      // Translate backend errors to Georgian
+      const backendError = error.response?.data?.error || error.response?.data?.message || '';
+      let georgianError = 'შესვლა ვერ მოხერხდა. სცადეთ თავიდან.';
+
+      if (backendError.toLowerCase().includes('invalid credentials') ||
+          backendError.toLowerCase().includes('wrong password') ||
+          backendError.toLowerCase().includes('incorrect password')) {
+        georgianError = 'არასწორი ელ.ფოსტა ან პაროლი';
+      } else if (backendError.toLowerCase().includes('user not found') ||
+                 backendError.toLowerCase().includes('no user')) {
+        georgianError = 'მომხმარებელი ვერ მოიძებნა';
+      } else if (backendError.toLowerCase().includes('email not verified') ||
+                 backendError.toLowerCase().includes('verify your email')) {
+        georgianError = 'გთხოვთ დაადასტუროთ თქვენი ელ.ფოსტა';
+      } else if (backendError.toLowerCase().includes('account locked') ||
+                 backendError.toLowerCase().includes('too many attempts')) {
+        georgianError = 'ანგარიში დაბლოკილია. სცადეთ მოგვიანებით.';
+      } else if (backendError.toLowerCase().includes('network') ||
+                 backendError.toLowerCase().includes('connection')) {
+        georgianError = 'ქსელის შეცდომა. შეამოწმეთ ინტერნეტ კავშირი.';
+      }
+
+      setErrors({ general: georgianError });
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +88,7 @@ const LoginPage: React.FC = () => {
             <p>შედით თქვენს ანგარიშზე გასაგრძელებლად</p>
           </div>
 
-          <form className="login-form" onSubmit={handleSubmit}>
+          <form className="login-form" onSubmit={handleSubmit} autoComplete="off">
             {errors.general && (
               <div className="error-message">{errors.general}</div>
             )}
@@ -95,6 +115,7 @@ const LoginPage: React.FC = () => {
               leftIcon={<Lock size={18} />}
               error={errors.password}
               required
+              autoComplete="off"
             />
 
             <div className="form-options">
@@ -110,7 +131,12 @@ const LoginPage: React.FC = () => {
               className="btn-submit"
               disabled={isLoading}
             >
-              {isLoading ? 'შესვლა...' : 'შესვლა'}
+              {isLoading ? (
+                <>
+                  <Loader2 size={18} className="spinner" />
+                  <span>შესვლა...</span>
+                </>
+              ) : 'შესვლა'}
             </button>
           </form>
 
