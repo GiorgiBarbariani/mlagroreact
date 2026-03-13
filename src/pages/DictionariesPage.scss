@@ -8,19 +8,40 @@
   background: #f5f5f5;
 
   .page-header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-lg;
     margin-bottom: $spacing-xl;
 
-    h1 {
-      font-size: 28px;
-      font-weight: 600;
-      color: $gray-900;
-      margin: 0 0 $spacing-xs 0;
+    .back-btn {
+      @include button-base;
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+      padding: $spacing-sm $spacing-md;
+      background: white;
+      border: 1px solid $gray-300;
+      color: $gray-700;
+      border-radius: $border-radius-md;
+
+      &:hover {
+        background: $gray-50;
+      }
     }
 
-    p {
-      font-size: 14px;
-      color: $gray-500;
-      margin: 0;
+    .header-content {
+      h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: $gray-900;
+        margin: 0 0 $spacing-xs 0;
+      }
+
+      p {
+        font-size: 14px;
+        color: $gray-500;
+        margin: 0;
+      }
     }
   }
 

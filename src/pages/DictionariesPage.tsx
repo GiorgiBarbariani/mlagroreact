@@ -261,8 +261,14 @@ const DictionariesPage: React.FC = () => {
     return (
       <div className="dictionaries-main">
         <div className="page-header">
-          <h1>ცნობარები</h1>
-          <p>სისტემის ცნობარების მართვა</p>
+          <button className="back-btn" onClick={() => navigate('/app/main-menu')}>
+            <ArrowLeft size={20} />
+            <span>უკან</span>
+          </button>
+          <div className="header-content">
+            <h1>ლექსიკონები</h1>
+            <p>სისტემის ცნობარების მართვა</p>
+          </div>
         </div>
 
         {/* Featured Section - Agricultural Data */}
