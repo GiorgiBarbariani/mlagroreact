@@ -8,7 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Save,
-  X
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import { apiClient } from '../api/apiClient';
 import LeafletMap, { type LeafletMapRef } from '../components/LeafletMap/LeafletMap';
@@ -57,6 +58,8 @@ const MyFieldsPage: React.FC = () => {
   // Modal states
   const [showFieldModal, setShowFieldModal] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [fieldToDelete, setFieldToDelete] = useState<Field | null>(null);
   const [drawnFieldName, setDrawnFieldName] = useState('');
   const [fieldForm, setFieldForm] = useState<FieldForm>({
     name: '',
@@ -170,17 +173,30 @@ const MyFieldsPage: React.FC = () => {
     setShowFieldModal(true);
   };
 
-  const deleteField = async (field: Field, event: React.MouseEvent) => {
+  const deleteField = (field: Field, event: React.MouseEvent) => {
     event.stopPropagation();
+    setFieldToDelete(field);
+    setShowDeleteModal(true);
+  };
 
-    if (window.confirm(`დარწმუნებული ხართ, რომ გსურთ "${field.name}" ველის წაშლა?`)) {
-      try {
-        await apiClient.delete(`/fields/${field.id}`);
-        await loadFields();
-      } catch (error) {
-        console.error('Error deleting field:', error);
-      }
+  const confirmDeleteField = async () => {
+    if (!fieldToDelete || !user?.companyId) return;
+
+    try {
+      await apiClient.delete(`/fields/${fieldToDelete.id}`, {
+        data: { companyId: user.companyId }
+      });
+      await loadFields();
+      closeDeleteModal();
+    } catch (error) {
+      console.error('Error deleting field:', error);
+      alert('ველის წაშლა ვერ მოხერხდა');
     }
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setFieldToDelete(null);
   };
 
   const addNewField = () => {
@@ -602,6 +618,50 @@ const MyFieldsPage: React.FC = () => {
               <button className="btn-save" onClick={saveDrawnField}>
                 <Save size={18} />
                 შენახვა
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && fieldToDelete && (
+        <div className="modal-overlay" onClick={closeDeleteModal}>
+          <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header delete-header">
+              <div className="warning-icon">
+                <AlertTriangle size={24} />
+              </div>
+              <h2>ველის წაშლა</h2>
+              <button className="modal-close" onClick={closeDeleteModal}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="delete-message">
+                დარწმუნებული ხართ, რომ გსურთ ამ ველის წაშლა?
+              </p>
+              <div className="field-to-delete">
+                <div className="field-icon">
+                  <Map size={24} />
+                </div>
+                <div className="field-info">
+                  <h4>{fieldToDelete.name}</h4>
+                  <p>ფართობი: {fieldToDelete.area} ჰა</p>
+                </div>
+              </div>
+              <p className="delete-warning">
+                <AlertTriangle size={16} />
+                ეს მოქმედება შეუქცევადია
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={closeDeleteModal}>
+                გაუქმება
+              </button>
+              <button className="btn-delete" onClick={confirmDeleteField}>
+                <Trash2 size={18} />
+                წაშლა
               </button>
             </div>
           </div>

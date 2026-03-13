@@ -482,9 +482,13 @@
         gap: $spacing-sm;
 
         .btn-cancel,
-        .btn-save {
+        .btn-save,
+        .btn-delete {
           @include button-base;
           padding: $spacing-sm $spacing-md;
+          display: flex;
+          align-items: center;
+          gap: $spacing-xs;
         }
 
         .btn-cancel {
@@ -500,12 +504,115 @@
         .btn-save {
           background: $primary-color;
           color: white;
-          display: flex;
-          align-items: center;
-          gap: $spacing-xs;
 
           &:hover {
             background: darken($primary-color, 10%);
+          }
+        }
+
+        .btn-delete {
+          background: $error-color;
+          color: white;
+
+          &:hover {
+            background: darken($error-color, 10%);
+          }
+        }
+      }
+
+      // Delete modal specific styles
+      &.delete-modal {
+        max-width: 420px;
+
+        .modal-header {
+          &.delete-header {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-bottom-color: #fecaca;
+            gap: $spacing-sm;
+
+            .warning-icon {
+              width: 40px;
+              height: 40px;
+              background: $error-color;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              flex-shrink: 0;
+            }
+
+            h2 {
+              color: #991b1b;
+              flex: 1;
+            }
+          }
+        }
+
+        .modal-body {
+          .delete-message {
+            text-align: center;
+            font-size: 16px;
+            color: $gray-700;
+            margin: 0 0 $spacing-lg 0;
+          }
+
+          .field-to-delete {
+            display: flex;
+            align-items: center;
+            gap: $spacing-md;
+            background: $gray-50;
+            border: 1px solid $gray-200;
+            border-radius: $border-radius-md;
+            padding: $spacing-md;
+            margin-bottom: $spacing-lg;
+
+            .field-icon {
+              width: 48px;
+              height: 48px;
+              background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 10%) 100%);
+              border-radius: $border-radius-md;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              flex-shrink: 0;
+            }
+
+            .field-info {
+              flex: 1;
+
+              h4 {
+                margin: 0 0 $spacing-xs 0;
+                font-size: 16px;
+                font-weight: 600;
+                color: $gray-900;
+              }
+
+              p {
+                margin: 0;
+                font-size: 14px;
+                color: $gray-600;
+              }
+            }
+          }
+
+          .delete-warning {
+            display: flex;
+            align-items: center;
+            gap: $spacing-xs;
+            padding: $spacing-sm $spacing-md;
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: $border-radius-sm;
+            font-size: 14px;
+            color: #92400e;
+            margin: 0;
+
+            svg {
+              color: #f59e0b;
+              flex-shrink: 0;
+            }
           }
         }
       }
