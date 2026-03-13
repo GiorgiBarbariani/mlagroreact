@@ -879,7 +879,7 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
       lastOverlayUrlRef.current = null;
       lastOverlayBoundsRef.current = null;
     }
-  }, [indexOverlay?.imageUrl, indexOverlay?.bounds?.[0]?.[0], indexOverlay?.bounds?.[1]?.[1]]);
+  }, [indexOverlay?.imageUrl, indexOverlay?.bounds ? JSON.stringify(indexOverlay.bounds) : null]);
 
   // Handle index points changes - display as colored markers with hover tooltips
   useEffect(() => {

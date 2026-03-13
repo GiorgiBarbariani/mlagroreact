@@ -1,4 +1,4 @@
-@import '../../styles/variables';
+@import "../../styles/variables";
 
 .sidebar {
   position: fixed;
@@ -22,8 +22,12 @@
       display: none;
     }
 
-    .nav-item span {
-      display: none;
+    .nav-item {
+      justify-content: center;
+
+      span {
+        display: none;
+      }
     }
 
     .section-title {

@@ -1,0 +1,291 @@
+@import '../../styles/variables';
+
+.notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 60px;
+  padding-right: 80px;
+  animation: fadeIn 0.2s ease;
+}
+
+.notification-modal {
+  background: white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-lg;
+  width: 440px;
+  max-height: 70vh;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  animation: slideDown 0.25s ease;
+  align-self: flex-start;
+
+  .notification-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-lg;
+    border-bottom: 1px solid $gray-200;
+    flex-shrink: 0;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+
+      h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: $gray-900;
+      }
+
+      .unread-badge {
+        background: $primary-color;
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 10px;
+        min-width: 20px;
+        text-align: center;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+
+      .mark-all-read-btn {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: none;
+        border: 1px solid $gray-300;
+        border-radius: $border-radius-sm;
+        padding: 4px 10px;
+        font-size: 12px;
+        color: $gray-600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: $gray-100;
+          color: $primary-color;
+          border-color: $primary-color;
+        }
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        color: $gray-500;
+        border-radius: $border-radius-sm;
+        display: flex;
+        align-items: center;
+
+        &:hover {
+          color: $gray-800;
+          background: $gray-100;
+        }
+      }
+    }
+  }
+
+  .notification-list {
+    overflow-y: auto;
+    flex: 1;
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: $spacing-xl * 2;
+      color: $gray-400;
+
+      svg {
+        margin-bottom: $spacing-md;
+      }
+
+      p {
+        font-size: 14px;
+        margin: 0;
+      }
+    }
+
+    .notification-item {
+      display: flex;
+      align-items: flex-start;
+      gap: $spacing-md;
+      padding: $spacing-md $spacing-lg;
+      border-bottom: 1px solid $gray-100;
+      transition: background 0.15s ease;
+      cursor: default;
+
+      &:hover {
+        background: $gray-50;
+
+        .notification-actions {
+          opacity: 1;
+        }
+      }
+
+      &.unread {
+        background: rgba($primary-color, 0.04);
+        border-left: 3px solid $primary-color;
+        padding-left: calc(#{$spacing-lg} - 3px);
+
+        .notification-title {
+          font-weight: 600;
+        }
+      }
+
+      .notification-icon {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: $gray-100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $gray-600;
+        margin-top: 2px;
+      }
+
+      &:last-child {
+        border-bottom: none;
+        border-bottom-left-radius: $border-radius-lg;
+        border-bottom-right-radius: $border-radius-lg;
+      }
+
+      &.unread .notification-icon {
+        background: rgba($primary-color, 0.1);
+        color: $primary-color;
+      }
+
+      .notification-content {
+        flex: 1;
+        min-width: 0;
+
+        .notification-title {
+          font-size: 14px;
+          font-weight: 500;
+          color: $gray-800;
+          margin-bottom: 2px;
+          line-height: 1.3;
+        }
+
+        .notification-message {
+          font-size: 13px;
+          color: $gray-600;
+          line-height: 1.4;
+          margin-bottom: 4px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .notification-time {
+          font-size: 11px;
+          color: $gray-400;
+        }
+      }
+
+      .notification-actions {
+        display: flex;
+        gap: 4px;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        flex-shrink: 0;
+
+        .action-btn {
+          background: none;
+          border: 1px solid $gray-200;
+          border-radius: $border-radius-sm;
+          padding: 4px;
+          cursor: pointer;
+          color: $gray-500;
+          display: flex;
+          align-items: center;
+          transition: all 0.15s ease;
+
+          &:hover {
+            background: $gray-100;
+            color: $primary-color;
+            border-color: $primary-color;
+          }
+
+          &.delete-btn:hover {
+            color: $error-color;
+            border-color: $error-color;
+          }
+        }
+      }
+    }
+  }
+
+  .loading-indicator {
+    display: flex;
+    justify-content: center;
+    padding: $spacing-lg;
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid $gray-200;
+      border-top-color: $primary-color;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Responsive
+@media (max-width: $breakpoint-sm) {
+  .notification-overlay {
+    padding-top: $header-height;
+  }
+
+  .notification-overlay {
+    padding-right: 0;
+  }
+
+  .notification-modal {
+    width: 100%;
+    max-height: calc(100vh - #{$header-height});
+    border-radius: 0;
+  }
+}

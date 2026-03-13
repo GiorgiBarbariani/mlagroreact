@@ -18,9 +18,6 @@ import {
   ArrowUp,
   ArrowDown,
   Minus,
-  ImageIcon,
-  Play,
-  Pause,
   Thermometer,
   Cloud,
   AlertCircle
@@ -219,13 +216,13 @@ const SatelliteDataPage: React.FC = () => {
   });
 
   // Satellite data state
-  const [selectedImageDate, setSelectedImageDate] = useState<string>('');
+  const [_selectedImageDate, setSelectedImageDate] = useState<string>('');
   const [satelliteImages, setSatelliteImages] = useState<SatelliteImage[]>([]);
   const [historicalData, setHistoricalData] = useState<IndexDataPoint[]>([]);
   const [fieldStats, setFieldStats] = useState<FieldStats | null>(null);
   const [satelliteData, setSatelliteData] = useState<SatelliteData | null>(null);
   const [_dataLoading, setDataLoading] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, _setIsPlaying] = useState(false);
   const [usingRealData, setUsingRealData] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
   const [indexOverlay, setIndexOverlay] = useState<{
@@ -334,8 +331,6 @@ const SatelliteDataPage: React.FC = () => {
       }
 
       // Get the active layer info for gradient colors
-      const layerInfo = satelliteLayers.find(l => l.id === activeLayer);
-
       // Optimized settings - image shows full data, points are for hover values
       const highResOptions: HighResolutionOptions = {
         resolution: 0,      // Auto-calculate for Sentinel-2 native 10m accuracy
