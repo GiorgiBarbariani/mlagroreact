@@ -2,19 +2,15 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   Home,
-  Map,
-  Cloud,
-  Satellite,
-  Building,
+  CloudRain,
+  Grid3X3,
+  FileSpreadsheet,
+  LayoutGrid,
   Calendar,
   BarChart,
   Settings,
-  HelpCircle,
   ChevronLeft,
-  ChevronRight,
-  Layers,
-  Database,
-  Image
+  ChevronRight
 } from 'lucide-react';
 import './Sidebar.scss';
 
@@ -24,18 +20,13 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
+  // Main menu items matching MainMenuPage
   const menuItems = [
     { path: '/app/main-menu', label: 'მთავარი მენიუ', icon: Home },
-    { path: '/app/electronic-field-map', label: 'მინდვრების რუკა', icon: Map },
-    { path: '/app/my-fields', label: 'ჩემი მინდვრები', icon: Layers },
-    { path: '/app/weather', label: 'ამინდი', icon: Cloud },
-    { path: '/app/satellite-data', label: 'სატელიტური მონაცემები', icon: Satellite },
-    { path: '/app/satellite-images', label: 'სატელიტური სურათები', icon: Image },
-    { path: '/app/dictionaries', label: 'ცნობარები', icon: Database },
-    { path: '/app/company', label: 'კომპანია', icon: Building },
-    { path: '/app/subscription', label: 'გამოწერა', icon: Calendar },
-    { path: '/app/help/support-tickets', label: 'მხარდაჭერა', icon: HelpCircle },
-    { path: '/app/settings', label: 'პარამეტრები', icon: Settings },
+    { path: '/app/weather', label: 'ამინდი', icon: CloudRain },
+    { path: '/app/company', label: 'კომპანია', icon: Grid3X3 },
+    { path: '/app/electronic-field-map', label: 'ელექტრონული საველე რუკები', icon: FileSpreadsheet },
+    { path: '/app/dictionaries', label: 'ლექსიკონები', icon: LayoutGrid },
   ];
 
   const adminItems = [
