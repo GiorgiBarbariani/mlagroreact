@@ -137,6 +137,7 @@
           text-align: left;
           cursor: pointer;
           transition: background 0.2s ease;
+          font-size: inherit;
 
           &:hover {
             background: $gray-100;
@@ -144,5 +145,49 @@
         }
       }
     }
+  }
+}
+
+.role-modal {
+  min-width: 520px;
+}
+
+.role-modal-info {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  .role-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: $spacing-lg;
+    padding: $spacing-sm 0;
+    border-bottom: 1px solid $gray-100;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .role-info-label {
+      color: $gray-600;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .role-info-value {
+      color: $gray-900;
+      font-weight: 500;
+      font-size: 14px;
+      text-align: right;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .role-modal {
+    min-width: unset;
   }
 }

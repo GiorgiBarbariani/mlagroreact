@@ -24,6 +24,7 @@ const CompanyPage = lazy(() => import('../pages/company/CompanyPage'));
 const EmployeeManagementPage = lazy(() => import('../pages/company/EmployeeManagementPage'));
 const CompanyTasksPage = lazy(() => import('../pages/company/CompanyTasksPage'));
 const ChatPage = lazy(() => import('../pages/company/ChatPage'));
+const CompanySettingsPage = lazy(() => import('../pages/company/CompanySettingsPage'));
 const MyFieldsPage = lazy(() => import('../pages/MyFieldsPage'));
 const SatelliteDataPage = lazy(() => import('../pages/satellite/SatelliteDataPage'));
 const SatelliteImagesPage = lazy(() => import('../pages/satellite/SatelliteImagesPage'));
@@ -37,8 +38,11 @@ const SystemStatusPage = lazy(() => import('../pages/admin/SystemStatusPage'));
 const AppealsPage = lazy(() => import('../pages/admin/AppealsPage'));
 const FileStoragePage = lazy(() => import('../pages/admin/FileStoragePage'));
 const ApiTestPage = lazy(() => import('../pages/ApiTestPage'));
+const TermsPage = lazy(() => import('../pages/TermsPage'));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 const UnderDevelopmentPage = lazy(() => import('../pages/UnderDevelopmentPage'));
+const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
+const SettingsPage = lazy(() => import('../pages/settings/SettingsPage'));
 
 export const AppRouter: React.FC = () => {
   return (
@@ -50,6 +54,7 @@ export const AppRouter: React.FC = () => {
         <Route path="/register" element={<RegistrationPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/terms" element={<TermsPage />} />
 
         {/* Root redirect */}
         <Route path="/" element={<Navigate to="/landing" replace />} />
@@ -84,6 +89,7 @@ export const AppRouter: React.FC = () => {
             <Route path="weather">
               <Route index element={<WeatherPage />} />
               <Route path="gis" element={<GisPage />} />
+              <Route path="map" element={<UnderDevelopmentPage />} />
               <Route path="analytics" element={<WeatherAnalyticsPage />} />
             </Route>
 
@@ -105,6 +111,7 @@ export const AppRouter: React.FC = () => {
               <Route path="employees" element={<EmployeeManagementPage />} />
               <Route path="chat" element={<ChatPage />} />
               <Route path="tasks" element={<CompanyTasksPage />} />
+              <Route path="settings" element={<CompanySettingsPage />} />
             </Route>
 
             {/* My Fields */}
@@ -148,8 +155,8 @@ export const AppRouter: React.FC = () => {
             <Route path="upload-images" element={<UnderDevelopmentPage />} />
             <Route path="fields-passport" element={<UnderDevelopmentPage />} />
             <Route path="services" element={<UnderDevelopmentPage />} />
-            <Route path="profile" element={<UnderDevelopmentPage />} />
-            <Route path="settings" element={<UnderDevelopmentPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
             <Route path="users" element={<UnderDevelopmentPage />} />
 
             {/* API Test (for development) */}

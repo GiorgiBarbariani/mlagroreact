@@ -8,8 +8,24 @@
   .page-header {
     margin-bottom: $spacing-xl;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: $spacing-lg;
+
+    .back-btn {
+      @include button-base;
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+      padding: $spacing-sm $spacing-md;
+      background: white;
+      border: 1px solid $gray-300;
+      color: $gray-700;
+      border-radius: $border-radius-md;
+
+      &:hover {
+        background: $gray-50;
+      }
+    }
 
     .page-title {
       font-size: 28px;
