@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Lock, AtSign, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, AtSign, Loader2, Building2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Input } from '../components/common/Input';
 import './RegistrationPage.scss';
@@ -13,6 +13,7 @@ const RegistrationPage: React.FC = () => {
     lastName: '',
     username: '',
     email: '',
+    companyName: '',
     password: '',
     confirmPassword: '',
     phone: ''
@@ -37,6 +38,10 @@ const RegistrationPage: React.FC = () => {
       case 'email':
         if (!value) return 'ელ.ფოსტა აუცილებელია';
         if (!/\S+@\S+\.\S+/.test(value)) return 'არასწორი ელ.ფოსტის ფორმატი';
+        return '';
+      case 'companyName':
+        if (!value) return 'კომპანიის დასახელება აუცილებელია';
+        if (value.length < 2) return 'მინიმუმ 2 სიმბოლო';
         return '';
       case 'password':
         if (!value) return 'პაროლი აუცილებელია';
@@ -80,7 +85,7 @@ const RegistrationPage: React.FC = () => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    const fields = ['firstName', 'lastName', 'username', 'email', 'password', 'confirmPassword', 'phone'];
+    const fields = ['firstName', 'lastName', 'username', 'email', 'companyName', 'password', 'confirmPassword', 'phone'];
 
     fields.forEach(field => {
       const error = validateField(field, formData[field as keyof typeof formData]);
@@ -105,6 +110,7 @@ const RegistrationPage: React.FC = () => {
         lastName: formData.lastName,
         username: formData.username,
         email: formData.email,
+        companyName: formData.companyName,
         password: formData.password,
         phone: `+995${formData.phone}`
       });
@@ -112,7 +118,7 @@ const RegistrationPage: React.FC = () => {
       if (response.success) {
         // Store email and redirect immediately to verification page
         const userEmail = formData.email;
-        navigate('/verify-email', { state: { email: userEmail } });
+        navigate('/verify-email', { state: { email: userEmail, companyName: formData.companyName } });
       }
     } catch (error: any) {
       // Translate common backend errors to Georgian
@@ -233,6 +239,18 @@ const RegistrationPage: React.FC = () => {
               placeholder="your@email.ge"
               leftIcon={<Mail size={18} />}
               error={errors.email}
+              required
+            />
+
+            <Input
+              label="კომპანიის დასახელება"
+              type="text"
+              name="companyName"
+              value={formData.companyName}
+              onChange={handleChange}
+              placeholder="შეიყვანეთ კომპანიის დასახელება"
+              leftIcon={<Building2 size={18} />}
+              error={errors.companyName}
               required
             />
 

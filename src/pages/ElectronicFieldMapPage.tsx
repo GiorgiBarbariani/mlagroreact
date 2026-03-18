@@ -4,7 +4,7 @@ import {
   Map,
   FileText,
   Calendar,
-  Settings,
+  ArrowLeft,
   BarChart3,
   Upload,
   Download,
@@ -155,13 +155,11 @@ const ElectronicFieldMapPage: React.FC = () => {
   return (
     <div className="electronic-field-map-page">
       <div className="page-header">
+        <button className="back-btn" onClick={() => navigate('/app/main-menu')}>
+          <ArrowLeft size={20} />
+          <span>უკან</span>
+        </button>
         <h1 className="page-title">ელექტრონული მინდვრების რუკა</h1>
-        <div className="header-actions">
-          <button className="btn-settings" onClick={() => navigate('/app/settings')}>
-            <Settings size={18} />
-            <span>პარამეტრები</span>
-          </button>
-        </div>
       </div>
 
       <div className="page-content">

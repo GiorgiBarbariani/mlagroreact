@@ -380,7 +380,7 @@ const EmployeeManagementPage: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} autoComplete="off">
               <div className="modal-body">
                 {error && (
                   <div className="error-message">{error}</div>
@@ -395,6 +395,7 @@ const EmployeeManagementPage: React.FC = () => {
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="შეიყვანეთ სახელი"
+                      autoComplete="off"
                       required
                     />
                   </div>
@@ -406,6 +407,7 @@ const EmployeeManagementPage: React.FC = () => {
                       value={formData.surname}
                       onChange={handleInputChange}
                       placeholder="შეიყვანეთ გვარი"
+                      autoComplete="off"
                       required
                     />
                   </div>
@@ -420,6 +422,7 @@ const EmployeeManagementPage: React.FC = () => {
                       value={formData.username}
                       onChange={handleInputChange}
                       placeholder="შეიყვანეთ მომხმარებლის სახელი"
+                      autoComplete="off"
                       required
                     />
                   </div>
@@ -431,6 +434,7 @@ const EmployeeManagementPage: React.FC = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="example@email.com"
+                      autoComplete="off"
                       required
                     />
                   </div>
@@ -445,6 +449,7 @@ const EmployeeManagementPage: React.FC = () => {
                       value={formData.phone}
                       onChange={handleInputChange}
                       placeholder="599123456"
+                      autoComplete="off"
                     />
                   </div>
                   <div className="form-group">
@@ -471,6 +476,7 @@ const EmployeeManagementPage: React.FC = () => {
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="შეიყვანეთ პაროლი"
+                      autoComplete="new-password"
                       required={!editingEmployee}
                     />
                   </div>

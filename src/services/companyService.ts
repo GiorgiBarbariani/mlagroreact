@@ -48,17 +48,30 @@ export interface CompanyTask {
 class CompanyService {
   // Company operations
   async getCompanyInfo(): Promise<Company> {
-    const response = await apiClient.get<Company>('/company/info');
-    return response.data;
+    const response = await apiClient.get<{ company: any }>('/companies/my');
+    const c = response.data.company;
+    return {
+      id: c.Id,
+      name: c.Name,
+      description: c.Description,
+      ownerId: c.OwnerId,
+      employeeCount: c.employees?.length || 0,
+      fieldCount: c.fields?.length || 0,
+      totalArea: c.fields?.reduce((sum: number, f: any) => sum + (f.FieldArea || 0), 0) || 0,
+      subscriptionType: c.SubscriptionPlan || 'Free',
+      isActive: c.IsActive,
+      createdAt: c.CreatedAt,
+      updatedAt: c.UpdatedAt,
+    };
   }
 
   async updateCompany(id: string, data: Partial<Company>): Promise<Company> {
-    const response = await apiClient.put<Company>(`/company/${id}`, data);
+    const response = await apiClient.put<Company>(`/companies/${id}`, data);
     return response.data;
   }
 
   async createCompany(data: Partial<Company>): Promise<Company> {
-    const response = await apiClient.post<Company>('/company', data);
+    const response = await apiClient.post<Company>('/companies', data);
     return response.data;
   }
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Map, BarChart3 } from 'lucide-react';
+import { Globe, Map, BarChart3, ArrowLeft } from 'lucide-react';
 import './WeatherPage.scss';
 
 const WeatherPage: React.FC = () => {
@@ -36,6 +36,10 @@ const WeatherPage: React.FC = () => {
   return (
     <div className="weather-page">
       <div className="page-header">
+        <button className="back-btn" onClick={() => navigate('/app/main-menu')}>
+          <ArrowLeft size={20} />
+          <span>უკან</span>
+        </button>
         <h1>ამინდი</h1>
         <p className="page-description">ამინდის პროგნოზი და ანალიზი</p>
       </div>

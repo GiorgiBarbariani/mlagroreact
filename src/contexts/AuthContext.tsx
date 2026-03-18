@@ -10,6 +10,7 @@ interface User {
   username?: string;
   firstName?: string;
   lastName?: string;
+  createdAt?: string;
 }
 
 interface RegisterResponse {
@@ -55,7 +56,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             email: userData.email,
             name: userData.username || userData.firstName || userData.email,
             role: userData.role || 'User',
-            companyId: userData.companyId
+            companyId: userData.companyId,
+            createdAt: userData.createdAt
           };
 
           // If user doesn't have a company, ensure one is created
@@ -99,7 +101,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email: userData.email,
         name: userData.username || userData.firstName || userData.email,
         role: userData.role || 'User',
-        companyId: userData.companyId
+        companyId: userData.companyId,
+        createdAt: userData.createdAt
       };
 
       // If user doesn't have a company, ensure one is created

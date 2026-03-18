@@ -11,7 +11,7 @@ const NotFoundPage: React.FC = () => {
         <h1>404</h1>
         <h2>გვერდი არ მოიძებნა</h2>
         <p>გვერდი, რომელსაც ეძებთ, არ არსებობს ან გადატანილია.</p>
-        <button onClick={() => navigate('/')} className="btn-home">
+        <button onClick={() => navigate('/app/main-menu')} className="btn-home">
           მთავარი გვერდი
         </button>
       </div>

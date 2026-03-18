@@ -1,0 +1,332 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.settings-page {
+  padding: $spacing-lg;
+  max-width: 800px;
+  margin: 0 auto;
+
+  .settings-loading {
+    @include flex-center;
+    flex-direction: column;
+    gap: $spacing-md;
+    padding: $spacing-xl * 2;
+    color: $gray-600;
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  .settings-header {
+    margin-bottom: $spacing-xl;
+
+    h1 {
+      font-size: 24px;
+      color: $gray-900;
+      margin-bottom: $spacing-xs;
+    }
+
+    p {
+      color: $gray-600;
+      font-size: 14px;
+    }
+  }
+
+  .settings-error {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    background: rgba($error-color, 0.1);
+    color: $error-color;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $border-radius-sm;
+    margin-bottom: $spacing-md;
+    font-size: 14px;
+  }
+
+  .settings-content {
+    @include flex-column;
+    gap: $spacing-lg;
+  }
+
+  .settings-section {
+    @include card;
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: $spacing-lg;
+      padding-bottom: $spacing-md;
+      border-bottom: 1px solid $gray-200;
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+        color: $gray-900;
+
+        h2 {
+          font-size: 18px;
+          margin: 0;
+        }
+
+        svg {
+          color: $primary-color;
+        }
+      }
+
+      .save-indicator {
+        display: flex;
+        align-items: center;
+        gap: $spacing-xs;
+        font-size: 13px;
+        color: $gray-500;
+
+        .spinner {
+          animation: spin 1s linear infinite;
+        }
+
+        &.success {
+          color: $success-color;
+        }
+      }
+    }
+  }
+
+  // Toggle switches
+  .toggles-list {
+    @include flex-column;
+    gap: 0;
+  }
+
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-md 0;
+    border-bottom: 1px solid $gray-100;
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &.toggle-all-row {
+      padding-bottom: $spacing-md;
+      margin-bottom: $spacing-xs;
+      border-bottom: 2px solid $gray-200;
+
+      .toggle-info {
+        font-weight: 600;
+        color: $gray-900;
+
+        svg {
+          color: $primary-color;
+        }
+      }
+    }
+
+    .toggle-info {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      color: $gray-800;
+      font-size: 14px;
+
+      svg {
+        color: $gray-500;
+      }
+    }
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: $gray-300;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    padding: 0;
+    flex-shrink: 0;
+
+    &.active {
+      background: $primary-color;
+
+      .toggle-knob {
+        transform: translateX(20px);
+      }
+    }
+
+    .toggle-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  // Display settings
+  .display-settings {
+    @include flex-column;
+    gap: $spacing-lg;
+  }
+
+  .setting-row {
+    @include flex-column;
+    gap: $spacing-sm;
+
+    .setting-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: $gray-700;
+    }
+  }
+
+  .setting-select {
+    width: 100%;
+    max-width: 300px;
+    padding: $spacing-sm $spacing-md;
+    border: 1px solid $gray-300;
+    border-radius: $border-radius-sm;
+    font-size: 14px;
+    color: $gray-800;
+    background: white;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: $primary-color;
+    }
+  }
+
+  .theme-buttons {
+    display: flex;
+    gap: $spacing-sm;
+  }
+
+  .theme-btn {
+    @include button-base;
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    background: white;
+    color: $gray-600;
+    border: 1px solid $gray-300;
+    padding: $spacing-sm $spacing-md;
+    font-size: 13px;
+
+    &:hover {
+      border-color: $gray-400;
+      background: $gray-50;
+    }
+
+    &.active {
+      background: rgba($primary-color, 0.08);
+      color: $primary-color;
+      border-color: $primary-color;
+    }
+  }
+
+  // Security section
+  .security-settings {
+    @include flex-column;
+    gap: 0;
+  }
+
+  .security-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-md 0;
+    border-bottom: 1px solid $gray-100;
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    .security-info {
+      display: flex;
+      align-items: flex-start;
+      gap: $spacing-sm;
+
+      svg {
+        color: $gray-500;
+        margin-top: 2px;
+        flex-shrink: 0;
+      }
+
+      div {
+        @include flex-column;
+        gap: 2px;
+      }
+
+      .security-label {
+        font-size: 14px;
+        color: $gray-800;
+        font-weight: 500;
+      }
+
+      .security-value {
+        font-size: 13px;
+        color: $gray-500;
+      }
+    }
+  }
+
+  .badge-soon {
+    display: inline-block;
+    background: rgba($warning-color, 0.12);
+    color: $warning-color;
+    padding: 2px $spacing-sm;
+    border-radius: $border-radius-sm;
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @include responsive(sm) {
+    padding: $spacing-md;
+
+    .settings-section {
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: $spacing-sm;
+      }
+    }
+
+    .theme-buttons {
+      flex-wrap: wrap;
+    }
+
+    .security-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $spacing-sm;
+    }
+  }
+}

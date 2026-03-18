@@ -10,6 +10,7 @@ const VerifyEmailPage: React.FC = () => {
 
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [email, setEmail] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isVerified, setIsVerified] = useState(false);
@@ -18,9 +19,11 @@ const VerifyEmailPage: React.FC = () => {
   useEffect(() => {
     // Get email from state or query params
     const stateEmail = location.state?.email;
+    const stateCompanyName = location.state?.companyName;
     const queryEmail = new URLSearchParams(location.search).get('email');
     const userEmail = stateEmail || queryEmail || '';
     setEmail(userEmail);
+    if (stateCompanyName) setCompanyName(stateCompanyName);
 
     if (!userEmail) {
       // If no email, redirect to registration
@@ -88,7 +91,8 @@ const VerifyEmailPage: React.FC = () => {
     try {
       const response = await apiClient.post('/auth/verify-email', {
         email,
-        code
+        code,
+        companyName
       });
 
       if (response.data.success) {

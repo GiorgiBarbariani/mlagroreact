@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Users, Map, Grid3X3, Calendar, CreditCard, Building2 } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
-import { apiClient } from '../../api/apiClient';
-import './CompanyPage.scss';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Users,
+  Map,
+  Grid3X3,
+  Calendar,
+  CreditCard,
+  ArrowLeft,
+} from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
+import { companyService } from "../../services/companyService";
+import "./CompanyPage.scss";
 
 interface CompanyInfo {
   id?: string;
@@ -20,11 +27,11 @@ const CompanyPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-    name: 'ჩემი კომპანია',
+    name: "ჩემი კომპანია",
     employees: 0,
     fields: 0,
     totalArea: 0,
-    subscription: 'საბაზისო'
+    subscription: "საბაზისო",
   });
   const [loading, setLoading] = useState(true);
 
@@ -35,23 +42,21 @@ const CompanyPage: React.FC = () => {
   const fetchCompanyInfo = async () => {
     try {
       setLoading(true);
-      // Fetch company info from API
-      const response = await apiClient.get('/company/info');
-      if (response.data) {
+      const data = await companyService.getCompanyInfo();
+      if (data) {
         setCompanyInfo({
-          id: response.data.id,
-          name: response.data.name || 'ჩემი კომპანია',
-          employees: response.data.employeeCount || 0,
-          fields: response.data.fieldCount || 0,
-          totalArea: response.data.totalArea || 0,
-          subscription: response.data.subscriptionType || 'საბაზისო',
-          owner: response.data.ownerName,
-          createdAt: response.data.createdAt
+          id: data.id,
+          name: data.name || "ჩემი კომპანია",
+          employees: data.employeeCount || 0,
+          fields: data.fieldCount || 0,
+          totalArea: data.totalArea || 0,
+          subscription: data.subscriptionType || "საბაზისო",
+          owner: data.ownerName,
+          createdAt: data.createdAt,
         });
       }
     } catch (error) {
-      console.error('Failed to fetch company info:', error);
-      // Use default values if fetch fails
+      console.error("Failed to fetch company info:", error);
     } finally {
       setLoading(false);
     }
@@ -59,45 +64,45 @@ const CompanyPage: React.FC = () => {
 
   const companyCards = [
     {
-      id: 'employees',
-      title: 'თანამშრომლების მართვა',
+      id: "employees",
+      title: "თანამშრომლების მართვა",
       icon: Users,
-      color: 'blue',
-      path: '/app/company/employees',
-      description: 'მართეთ თქვენი თანამშრომლები'
+      color: "blue",
+      path: "/app/company/employees",
+      description: "მართეთ თქვენი თანამშრომლები",
     },
     {
-      id: 'fields',
-      title: 'თანამშრომლების ჩატი',
+      id: "fields",
+      title: "თანამშრომლების ჩატი",
       icon: Map,
-      color: 'green',
-      path: '/app/company/chat',
-      description: 'მართეთ კომპანიის მინდვრები'
+      color: "green",
+      path: "/app/company/chat",
+      description: "მართეთ კომპანიის მინდვრები",
     },
     {
-      id: 'my-fields',
-      title: 'ჩემი მინდვრები',
+      id: "my-fields",
+      title: "ჩემი მინდვრები",
       icon: Grid3X3,
-      color: 'orange',
-      path: '/app/my-fields',
-      description: 'იხილეთ და მართეთ თქვენი მინდვრები'
+      color: "orange",
+      path: "/app/my-fields",
+      description: "იხილეთ და მართეთ თქვენი მინდვრები",
     },
     {
-      id: 'tasks',
-      title: 'დავალებების მართვა',
+      id: "tasks",
+      title: "დავალებების მართვა",
       icon: Calendar,
-      color: 'purple',
-      path: '/app/company/tasks',
-      description: 'დაგეგმეთ და მართეთ დავალებები'
+      color: "purple",
+      path: "/app/company/tasks",
+      description: "დაგეგმეთ და მართეთ დავალებები",
     },
     {
-      id: 'payment',
-      title: 'გადახდა და გამოწერა',
+      id: "payment",
+      title: "გადახდა და გამოწერა",
       icon: CreditCard,
-      color: 'teal',
-      path: '/app/subscription',
-      description: 'მართეთ გამოწერები და გადახდები'
-    }
+      color: "teal",
+      path: "/app/subscription",
+      description: "მართეთ გამოწერები და გადახდები",
+    },
   ];
 
   const handleCardClick = (path: string) => {
@@ -107,13 +112,11 @@ const CompanyPage: React.FC = () => {
   return (
     <div className="company-page">
       <div className="page-header">
+        <button className="back-btn" onClick={() => navigate("/app/main-menu")}>
+          <ArrowLeft size={20} />
+          <span>უკან</span>
+        </button>
         <h1 className="page-title">კომპანია</h1>
-        <div className="header-actions">
-          <button className="btn-company-settings" onClick={() => navigate('/app/company/settings')}>
-            <Building2 size={18} />
-            <span>პარამეტრები</span>
-          </button>
-        </div>
       </div>
 
       <div className="company-content">
@@ -181,19 +184,29 @@ const CompanyPage: React.FC = () => {
                       </div>
                       <div className="info-row">
                         <span className="info-label">მფლობელი:</span>
-                        <span className="info-value">{companyInfo.owner || user?.name || 'არ არის მითითებული'}</span>
+                        <span className="info-value">
+                          {companyInfo.owner ||
+                            user?.name ||
+                            "არ არის მითითებული"}
+                        </span>
                       </div>
                       <div className="info-row">
                         <span className="info-label">გამოწერა:</span>
-                        <span className="info-value subscription-badge">{companyInfo.subscription}</span>
+                        <span className="info-value subscription-badge">
+                          {companyInfo.subscription}
+                        </span>
                       </div>
                       <div className="info-row">
                         <span className="info-label">თანამშრომლები:</span>
-                        <span className="info-value">{companyInfo.employees}</span>
+                        <span className="info-value">
+                          {companyInfo.employees}
+                        </span>
                       </div>
                       <div className="info-row">
                         <span className="info-label">სულ ფართობი:</span>
-                        <span className="info-value">{companyInfo.totalArea} ჰა</span>
+                        <span className="info-value">
+                          {companyInfo.totalArea} ჰა
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -203,21 +216,21 @@ const CompanyPage: React.FC = () => {
                     <div className="action-buttons">
                       <button
                         className="action-btn"
-                        onClick={() => navigate('/app/company/employees')}
+                        onClick={() => navigate("/app/company/employees")}
                       >
                         <Users size={16} />
                         <span>დაამატე თანამშრომელი</span>
                       </button>
                       <button
                         className="action-btn"
-                        onClick={() => navigate('/app/my-fields')}
+                        onClick={() => navigate("/app/my-fields")}
                       >
                         <Map size={16} />
-                        <span>დაამატე მინდვორი</span>
+                        <span>დაამატე მინდორი</span>
                       </button>
                       <button
                         className="action-btn"
-                        onClick={() => navigate('/app/company/tasks')}
+                        onClick={() => navigate("/app/company/tasks")}
                       >
                         <Calendar size={16} />
                         <span>შექმენი დავალება</span>
