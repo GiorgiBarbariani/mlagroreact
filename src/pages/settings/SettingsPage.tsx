@@ -51,7 +51,7 @@ const THEMES = [
 ];
 
 const SettingsPage: React.FC = () => {
-  const { user } = useAuth();
+  useAuth();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

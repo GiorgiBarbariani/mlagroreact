@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Building2, Loader2 } from 'lucide-react';
-import { companyService, Company } from '../../services/companyService';
+import { companyService } from '../../services/companyService';
+import type { Company } from '../../services/companyService';
 import './CompanySettingsPage.scss';
 
 const CompanySettingsPage: React.FC = () => {
