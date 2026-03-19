@@ -238,6 +238,26 @@ const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(({
     // Add satellite layer as default
     satelliteLayer.addTo(map);
 
+    // Add Georgia region borders from geojson
+    let georgiaBorderLayer: L.GeoJSON | null = null;
+    fetch('/assets/data/georgia-adm1.geojson')
+      .then(response => response.json())
+      .then(georgiaRegions => {
+        georgiaBorderLayer = L.geoJSON(georgiaRegions, {
+          style: {
+            color: '#FF0000',
+            weight: 2,
+            opacity: 0.8,
+            fillColor: 'transparent',
+            fillOpacity: 0
+          }
+        });
+        georgiaBorderLayer.addTo(map);
+      })
+      .catch(error => {
+        console.error('Error loading Georgian borders:', error);
+      });
+
     // Cadastral tile layer - disabled due to maps.registry.ge unavailability
     // Using a placeholder layer group instead
     const cadastralTileLayer = L.layerGroup();
