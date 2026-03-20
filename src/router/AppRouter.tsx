@@ -43,6 +43,7 @@ const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 const UnderDevelopmentPage = lazy(() => import('../pages/UnderDevelopmentPage'));
 const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
 const SettingsPage = lazy(() => import('../pages/settings/SettingsPage'));
+const PlantDiseasePage = lazy(() => import('../pages/PlantDiseasePage'));
 
 export const AppRouter: React.FC = () => {
   return (
@@ -157,6 +158,7 @@ export const AppRouter: React.FC = () => {
             <Route path="services" element={<UnderDevelopmentPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="plant-disease" element={<PlantDiseasePage />} />
             <Route path="users" element={<UnderDevelopmentPage />} />
 
             {/* API Test (for development) */}
