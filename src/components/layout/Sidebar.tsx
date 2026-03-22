@@ -15,6 +15,7 @@ import {
   MessageSquare,
   FolderOpen,
   Bug,
+  Brain,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import './Sidebar.scss';
@@ -35,6 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     { path: '/app/electronic-field-map', label: 'ელექტრონული საველე რუკები', icon: FileSpreadsheet },
     { path: '/app/dictionaries', label: 'ლექსიკონები', icon: LayoutGrid },
     { path: '/app/plant-disease', label: 'დაავადების ანალიზი', icon: Bug },
+    { path: '/app/field-analysis', label: 'AI მინდვრის ანალიზი', icon: Brain },
   ];
 
   const adminItems = [
