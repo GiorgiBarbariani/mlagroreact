@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Lock, AtSign, Loader2, Building2 } from 'lucide-react';
+import { User, Mail, Lock, AtSign, Loader2, Building2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Input } from '../components/common/Input';
 import './RegistrationPage.scss';
@@ -158,6 +158,10 @@ const RegistrationPage: React.FC = () => {
     <div className="registration-page">
       <div className="registration-container">
         <div className="registration-card">
+          <button className="btn-back" onClick={() => navigate('/landing')}>
+            <ArrowLeft size={18} />
+            <span>უკან დაბრუნება</span>
+          </button>
           <div className="registration-header">
             <h1>MLAgro</h1>
             <h2>რეგისტრაცია</h2>
