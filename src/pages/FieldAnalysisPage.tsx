@@ -9,8 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   fieldAnalysisService,
   type FieldAnalysisResult,
-  type CompanyAnalysisSummary,
-  type FieldAnalysisSummary
+  type CompanyAnalysisSummary
 } from '../services/fieldAnalysisService';
 import { apiClient } from '../api/apiClient';
 import { useAuth } from '../hooks/useAuth';
