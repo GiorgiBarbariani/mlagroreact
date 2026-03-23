@@ -29,6 +29,8 @@ const LandingPage: React.FC = () => {
         </div>
       </header>
 
+
+
       <section className="hero">
         <div className="container">
           <div className="hero-content">
