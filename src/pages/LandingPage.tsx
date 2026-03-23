@@ -22,7 +22,6 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="landing-page">
-      {/* Header */}
       <header className={`landing-header ${scrolled ? 'scrolled' : ''}`}>
         <div className="container">
           <div className="logo">
