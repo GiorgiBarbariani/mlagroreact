@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Loader2 } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Input } from '../components/common/Input';
 import './LoginPage.scss';
@@ -82,6 +82,10 @@ const LoginPage: React.FC = () => {
     <div className="login-page">
       <div className="login-container">
         <div className="login-card">
+          <button className="btn-back" onClick={() => navigate('/landing')}>
+            <ArrowLeft size={18} />
+            <span>უკან დაბრუნება</span>
+          </button>
           <div className="login-header">
             <h1>MLAgro</h1>
             <h2>კეთილი იყოს თქვენი დაბრუნება</h2>

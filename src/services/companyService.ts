@@ -55,6 +55,7 @@ class CompanyService {
       name: c.Name,
       description: c.Description,
       ownerId: c.OwnerId,
+      ownerName: c.OwnerName,
       employeeCount: c.employees?.length || 0,
       fieldCount: c.fields?.length || 0,
       totalArea: c.fields?.reduce((sum: number, f: any) => sum + (f.FieldArea || 0), 0) || 0,

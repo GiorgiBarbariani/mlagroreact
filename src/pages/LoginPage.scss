@@ -10,12 +10,31 @@
 
   .login-container {
     width: 100%;
-    max-width: 400px;
+    max-width: 520px;
     padding: $spacing-lg;
 
     .login-card {
       @include card;
       background: white;
+      padding: $spacing-xl + 16px;
+
+      .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        color: $gray-600;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 0;
+        margin-bottom: $spacing-lg;
+        transition: color 0.2s;
+
+        &:hover {
+          color: $primary-color;
+        }
+      }
 
       .login-header {
         text-align: center;
@@ -30,7 +49,7 @@
         h2 {
           color: $gray-900;
           font-size: 24px;
-          margin-bottom: $spacing-xs;
+          margin-bottom: 1.5rem;
         }
 
         p {
