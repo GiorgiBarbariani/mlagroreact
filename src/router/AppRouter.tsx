@@ -45,6 +45,8 @@ const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
 const SettingsPage = lazy(() => import('../pages/settings/SettingsPage'));
 const PlantDiseasePage = lazy(() => import('../pages/PlantDiseasePage'));
 const FieldAnalysisPage = lazy(() => import('../pages/FieldAnalysisPage'));
+const StoragePage = lazy(() => import('../pages/storage/StoragePage'));
+const DistributionPage = lazy(() => import('../pages/distribution/DistributionPage'));
 
 export const AppRouter: React.FC = () => {
   return (
@@ -161,6 +163,8 @@ export const AppRouter: React.FC = () => {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="plant-disease" element={<PlantDiseasePage />} />
             <Route path="field-analysis" element={<FieldAnalysisPage />} />
+            <Route path="storage" element={<StoragePage />} />
+            <Route path="distribution" element={<DistributionPage />} />
             <Route path="users" element={<UnderDevelopmentPage />} />
 
             {/* API Test (for development) */}
