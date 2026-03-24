@@ -39,8 +39,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     { path: '/app/dictionaries', label: 'ლექსიკონები', icon: LayoutGrid },
     { path: '/app/plant-disease', label: 'დაავადების ანალიზი', icon: Bug },
     { path: '/app/field-analysis', label: 'AI მინდვრის ანალიზი', icon: Brain },
-    { path: '/app/storage', label: 'საწყობი', icon: Warehouse },
-    { path: '/app/distribution', label: 'დისტრიბუცია', icon: Truck },
+    // { path: '/app/storage', label: 'საწყობი', icon: Warehouse },
+    // { path: '/app/distribution', label: 'დისტრიბუცია', icon: Truck },
   ];
 
   const adminItems = [
