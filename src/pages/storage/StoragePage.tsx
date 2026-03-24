@@ -22,8 +22,6 @@ import storageService, {
   type CompanySummary,
   type StorageType,
   type StorageKind,
-  type StorageStatus,
-  type StorageItemStatus,
 } from '../../services/storageService';
 import { companyService } from '../../services/companyService';
 import './StoragePage.scss';
