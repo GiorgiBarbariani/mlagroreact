@@ -163,8 +163,8 @@ export const AppRouter: React.FC = () => {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="plant-disease" element={<PlantDiseasePage />} />
             <Route path="field-analysis" element={<FieldAnalysisPage />} />
-            <Route path="storage" element={<StoragePage />} />
-            <Route path="distribution" element={<DistributionPage />} />
+            {/* <Route path="storage" element={<StoragePage />} /> */}
+            {/* <Route path="distribution" element={<DistributionPage />} /> */}
             <Route path="users" element={<UnderDevelopmentPage />} />
 
             {/* API Test (for development) */}

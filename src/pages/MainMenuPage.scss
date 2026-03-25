@@ -128,6 +128,40 @@
       }
     }
 
+    &.orange {
+      background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+
+      &::before {
+        background: #f97316;
+      }
+
+      .icon-wrapper {
+        background: rgba(249, 115, 22, 0.15);
+        color: #ea580c;
+      }
+
+      h2 {
+        color: #7c2d12;
+      }
+    }
+
+    &.purple {
+      background: linear-gradient(135deg, #f5f3ff 0%, #e9d5ff 100%);
+
+      &::before {
+        background: #a855f7;
+      }
+
+      .icon-wrapper {
+        background: rgba(168, 85, 247, 0.15);
+        color: #9333ea;
+      }
+
+      h2 {
+        color: #581c87;
+      }
+    }
+
     .card-content {
       padding: $spacing-xl;
       position: relative;

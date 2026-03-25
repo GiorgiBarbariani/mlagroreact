@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CloudRain, Grid3X3, FileSpreadsheet, LayoutGrid } from 'lucide-react';
+import { CloudRain, Grid3X3, FileSpreadsheet, LayoutGrid, Bug, Brain } from 'lucide-react';
 import './MainMenuPage.scss';
 
 const MainMenuPage: React.FC = () => {
@@ -38,6 +38,22 @@ const MainMenuPage: React.FC = () => {
       color: 'gray',
       path: '/app/dictionaries',
       description: 'სისტემის ლექსიკონები'
+    },
+    {
+      id: 'plant-disease',
+      title: 'დაავადების ანალიზი',
+      icon: Bug,
+      color: 'orange',
+      path: '/app/plant-disease',
+      description: 'მცენარეთა დაავადებების იდენტიფიკაცია'
+    },
+    {
+      id: 'field-analysis',
+      title: 'AI მინდვრის ანალიზი',
+      icon: Brain,
+      color: 'purple',
+      path: '/app/field-analysis',
+      description: 'ხელოვნური ინტელექტით მინდვრის ანალიზი'
     }
   ];
 
