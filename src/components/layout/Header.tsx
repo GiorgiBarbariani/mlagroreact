@@ -70,10 +70,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           <button className="menu-toggle" onClick={onMenuToggle}>
             <Menu size={24} />
           </button>
-          <div className="search-box">
-            <Search size={20} />
-            <input type="text" placeholder="ძებნა..." />
-          </div>
+         
         </div>
         <div className="header-right">
           <button className="header-icon" onClick={openModal}>
