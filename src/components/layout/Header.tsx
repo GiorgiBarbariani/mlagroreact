@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotifications';
 import { companyService } from '../../services/companyService';
-import { Bell, Menu, Search, User } from 'lucide-react';
+import { Bell, Menu, User } from 'lucide-react';
 import { NotificationModal } from './NotificationModal';
 import { Modal } from '../common';
 import './Header.scss';

@@ -160,7 +160,7 @@ const FieldWeatherModal: React.FC<FieldWeatherModalProps> = ({ field, onClose, o
                     className="date-input"
                   />
                 </div>
-                <div className="filter-group">
+                {/* <div className="filter-group">
                   <label>პროვაიდერი</label>
                   <select
                     value={provider}
@@ -170,7 +170,7 @@ const FieldWeatherModal: React.FC<FieldWeatherModalProps> = ({ field, onClose, o
                     <option value="FieldClimate">FieldClimate</option>
                     <option value="OpenMeteo">OpenMeteo</option>
                   </select>
-                </div>
+                </div> */}
               </div>
 
               {loading ? (
