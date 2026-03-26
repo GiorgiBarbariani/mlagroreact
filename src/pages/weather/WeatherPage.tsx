@@ -109,37 +109,7 @@ const WeatherPage: React.FC = () => {
         })}
       </div>
 
-      {/* Weather Information Section */}
-      <div className="weather-info-section">
-        <h2>შემაჯამებელი ინფორმაცია</h2>
-        <div className="info-cards">
-          <div className="info-card">
-            {/* Section 1: Climate Deviations */}
-            <CollapsibleSection title="კლიმატური გადახრები რეგიონების მიხედვით" defaultOpen>
-              <ReportItem title="Source 1" date="თარიღი: 05.03.2024" color="#E74C3C" />
-              <ReportItem title="Source 2" date="თარიღი: 16.08.2024" color="#E74C3C" />
-              <ReportItem title="Source 3" date="თარიღი: 03.09.2024" color="#E74C3C" />
-            </CollapsibleSection>
-
-            <div className="section-divider" />
-
-            {/* Section 2: Weather Reports by Date */}
-            <CollapsibleSection title="ამინდის რეპორტი თარიღების მიხედვით">
-              <ReportItem title="თვიური რეპორტი - თებერვალი 2024" date="ატვირთვის თარიღი: 01.03.2024" color="#4A90D9" />
-              <ReportItem title="თვიური რეპორტი - იანვარი 2024" date="ატვირთვის თარიღი: 02.02.2024" color="#4A90D9" />
-              <ReportItem title="წლიური რეპორტი - 2023" date="ატვირთვის თარიღი: 15.01.2024" color="#4A90D9" />
-            </CollapsibleSection>
-
-            <div className="section-divider" />
-
-            {/* Section 3: Seasonal Analysis */}
-            <CollapsibleSection title="სეზონური ანალიზი და რეკომენდაციები">
-              <ReportItem title="გაზაფხულის სეზონი 2024 - ანალიზი" date="ატვირთვის თარიღი: 15.06.2024" color="#27AE60" />
-              <ReportItem title="ზამთრის სეზონი 2023-2024" date="ატვირთვის თარიღი: 01.03.2024" color="#27AE60" />
-            </CollapsibleSection>
-          </div>
-        </div>
-      </div>
+     
     </div>
   );
 };
