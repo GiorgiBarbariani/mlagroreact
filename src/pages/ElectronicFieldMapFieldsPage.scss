@@ -43,6 +43,7 @@
     // Main Content Area
     .main-content {
       flex: 1;
+      margin-left: 200px;
       background: white;
       border-radius: $border-radius-lg;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -414,6 +415,10 @@
   @media (max-width: 1024px) {
     .page-content {
       flex-direction: column;
+
+      .main-content {
+        margin-left: 0;
+      }
 
       .filters-sidebar {
         width: 100%;
