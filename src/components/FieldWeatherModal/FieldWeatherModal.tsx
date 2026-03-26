@@ -20,12 +20,10 @@ interface FieldWeatherModalProps {
 }
 
 type TabType = 'basic' | 'forecast';
-type ProviderType = 'FieldClimate' | 'OpenMeteo';
 
 const FieldWeatherModal: React.FC<FieldWeatherModalProps> = ({ field, onClose, onAddPoint }) => {
   const [activeTab, setActiveTab] = useState<TabType>('basic');
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [provider, setProvider] = useState<ProviderType>('FieldClimate');
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [forecastData, setForecastData] = useState<ForecastData[]>([]);
   const [loading, setLoading] = useState(true);
