@@ -45,8 +45,6 @@ const ProfilePage = lazy(() => import('../pages/profile/ProfilePage'));
 const SettingsPage = lazy(() => import('../pages/settings/SettingsPage'));
 const PlantDiseasePage = lazy(() => import('../pages/PlantDiseasePage'));
 const FieldAnalysisPage = lazy(() => import('../pages/FieldAnalysisPage'));
-const StoragePage = lazy(() => import('../pages/storage/StoragePage'));
-const DistributionPage = lazy(() => import('../pages/distribution/DistributionPage'));
 
 export const AppRouter: React.FC = () => {
   return (

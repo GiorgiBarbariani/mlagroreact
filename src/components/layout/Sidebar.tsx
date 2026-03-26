@@ -16,8 +16,6 @@ import {
   FolderOpen,
   Bug,
   Brain,
-  Warehouse,
-  Truck,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import './Sidebar.scss';
