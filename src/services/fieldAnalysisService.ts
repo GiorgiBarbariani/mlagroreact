@@ -135,7 +135,7 @@ export const fieldAnalysisService = {
       `/field-analysis/analyze/${fieldId}`,
       { companyId }
     );
-    return response.data.data;
+    return response.data?.data || response.data;
   },
 
   /**
@@ -145,7 +145,8 @@ export const fieldAnalysisService = {
     const response = await apiClient.get<{ success: boolean; data: AnalysisHistoryItem[] }>(
       `/field-analysis/history/${fieldId}?companyId=${companyId}&limit=${limit}`
     );
-    return response.data.data;
+    const data = response.data?.data || response.data || [];
+    return Array.isArray(data) ? data : [];
   },
 
   /**
@@ -155,7 +156,7 @@ export const fieldAnalysisService = {
     const response = await apiClient.get<{ success: boolean; data: CompanyAnalysisSummary }>(
       `/field-analysis/company/${companyId}`
     );
-    return response.data.data;
+    return response.data?.data || response.data;
   },
 
   /**
@@ -171,7 +172,7 @@ export const fieldAnalysisService = {
       `/field-analysis/quick-risk/${fieldId}`,
       { companyId }
     );
-    return response.data.data;
+    return response.data?.data || response.data;
   },
 
   /**
@@ -192,6 +193,6 @@ export const fieldAnalysisService = {
       '/field-analysis/batch',
       { fieldIds, companyId }
     );
-    return response.data.data;
+    return response.data?.data || response.data;
   }
 };

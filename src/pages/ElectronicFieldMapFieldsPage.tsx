@@ -88,8 +88,9 @@ const ElectronicFieldMapFieldsPage: React.FC = () => {
         : '/fields';
       const response = await apiClient.get(url);
       const fieldsData = response.data?.data || response.data || [];
-      setFields(fieldsData);
-      setTotalCount(fieldsData.length);
+      const fieldsArray = Array.isArray(fieldsData) ? fieldsData : [];
+      setFields(fieldsArray);
+      setTotalCount(fieldsArray.length);
     } catch (error) {
       console.error('Error loading fields:', error);
       setFields([]);
@@ -99,8 +100,8 @@ const ElectronicFieldMapFieldsPage: React.FC = () => {
   const loadRegions = async () => {
     try {
       const response = await apiClient.get('/regions');
-      const regionsData = response.data || [];
-      setRegions(regionsData);
+      const regionsData = response.data?.data || response.data || [];
+      setRegions(Array.isArray(regionsData) ? regionsData : []);
     } catch (error) {
       console.error('Error loading regions:', error);
       setRegions([]);
@@ -110,9 +111,10 @@ const ElectronicFieldMapFieldsPage: React.FC = () => {
   const loadCrops = async () => {
     try {
       const response = await apiClient.get('/dictionaries/crops');
-      const cropsData = response.data || [];
+      const cropsData = response.data?.data || response.data || [];
+      const cropsArray = Array.isArray(cropsData) ? cropsData : [];
       setCropsOptions(
-        cropsData.map((crop: any) => ({
+        cropsArray.map((crop: any) => ({
           value: crop.id || crop.name,
           label: crop.nameKa || crop.name
         }))

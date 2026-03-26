@@ -1,48 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Globe, Map, BarChart3, ArrowLeft, ChevronDown, ChevronUp, FileText, Download } from 'lucide-react';
+import { Globe, Map, BarChart3, ArrowLeft } from 'lucide-react';
 import './WeatherPage.scss';
-
-interface CollapsibleSectionProps {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}
-
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children, defaultOpen = false }) => {
-  const [expanded, setExpanded] = useState(defaultOpen);
-
-  return (
-    <div className="collapsible-section">
-      <button className="collapsible-header" onClick={() => setExpanded(!expanded)}>
-        <span className="collapsible-title">{title}</span>
-        {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-      </button>
-      {expanded && <div className="collapsible-content">{children}</div>}
-    </div>
-  );
-};
-
-interface ReportItemProps {
-  title: string;
-  date: string;
-  color?: string;
-}
-
-const ReportItem: React.FC<ReportItemProps> = ({ title, date, color = '#E74C3C' }) => (
-  <div className="report-item">
-    <div className="report-item-left">
-      <FileText size={18} color={color} />
-      <div>
-        <span className="report-title">{title}</span>
-        <span className="report-date">{date}</span>
-      </div>
-    </div>
-    <button className="download-btn">
-      <Download size={18} color={color} />
-    </button>
-  </div>
-);
 
 const WeatherPage: React.FC = () => {
   const navigate = useNavigate();

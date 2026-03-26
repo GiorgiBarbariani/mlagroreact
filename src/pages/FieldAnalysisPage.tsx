@@ -175,7 +175,7 @@ const FieldAnalysisPage: React.FC = () => {
       </div>
 
       {/* Company Summary */}
-      {companySummary && (
+      {companySummary?.summary && (
         <div className="company-summary">
           <h2>მინდვრების მოკლე მიმოხილვა</h2>
           <div className="summary-cards">
@@ -184,7 +184,7 @@ const FieldAnalysisPage: React.FC = () => {
                 <MapPin size={24} />
               </div>
               <div className="card-content">
-                <span className="card-value">{companySummary.summary.totalFields}</span>
+                <span className="card-value">{companySummary.summary.totalFields ?? 0}</span>
                 <span className="card-label">სულ მინდვრები</span>
               </div>
             </div>
@@ -193,7 +193,7 @@ const FieldAnalysisPage: React.FC = () => {
                 <BarChart3 size={24} />
               </div>
               <div className="card-content">
-                <span className="card-value">{companySummary.summary.analyzedFields}</span>
+                <span className="card-value">{companySummary.summary.analyzedFields ?? 0}</span>
                 <span className="card-label">გაანალიზებული</span>
               </div>
             </div>
@@ -202,7 +202,7 @@ const FieldAnalysisPage: React.FC = () => {
                 <AlertTriangle size={24} />
               </div>
               <div className="card-content">
-                <span className="card-value">{companySummary.summary.highRiskFields}</span>
+                <span className="card-value">{companySummary.summary.highRiskFields ?? 0}</span>
                 <span className="card-label">მაღალი რისკი</span>
               </div>
             </div>
@@ -212,7 +212,7 @@ const FieldAnalysisPage: React.FC = () => {
               </div>
               <div className="card-content">
                 <span className="card-value">
-                  {companySummary.summary.totalPredictedYield > 0
+                  {(companySummary.summary.totalPredictedYield ?? 0) > 0
                     ? `${Math.round(companySummary.summary.totalPredictedYield / 1000)}t`
                     : '-'}
                 </span>
@@ -605,7 +605,7 @@ const FieldAnalysisPage: React.FC = () => {
       )}
 
       {/* Fields Overview (when no analysis is active) */}
-      {!analysis && companySummary && companySummary.fields.length > 0 && (
+      {!analysis && companySummary?.fields && companySummary.fields.length > 0 && (
         <div className="fields-overview">
           <h2>მინდვრების სტატუსი</h2>
           <div className="fields-table">

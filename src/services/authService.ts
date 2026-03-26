@@ -55,7 +55,7 @@ class AuthService {
       }
     });
     // The /auth/me endpoint returns { user: {...} }, so we need to extract the user
-    return response.data.user;
+    return response.data?.user || response.data;
   }
 
   async forgotPassword(email: string): Promise<void> {
