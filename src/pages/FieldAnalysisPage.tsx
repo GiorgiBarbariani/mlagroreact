@@ -3,7 +3,8 @@ import {
   Brain, TrendingUp, AlertTriangle, Droplets, Leaf, Bug,
   Cloud, ArrowLeft, Loader2, RefreshCw, BarChart3, Target,
   Calendar, MapPin, Wheat, Lightbulb, Shield, Clock,
-  ChevronDown, ChevronUp, Activity, ThermometerSun
+  ChevronDown, ChevronUp, Activity, ThermometerSun,
+  Download, FileText, FileSpreadsheet, History
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -13,6 +14,17 @@ import {
 } from '../services/fieldAnalysisService';
 import { apiClient } from '../api/apiClient';
 import { useAuth } from '../hooks/useAuth';
+import {
+  RiskGaugeChart,
+  RiskDistributionChart,
+  exportToPDF,
+  exportToExcel,
+  HistoricalTrendView,
+  AnalysisSkeleton,
+  CompanySummarySkeleton,
+  TableSkeleton,
+  FieldSelectorSkeleton
+} from '../components/FieldAnalysis';
 import './FieldAnalysisPage.scss';
 
 interface Field {
@@ -20,12 +32,13 @@ interface Field {
   name: string;
   area: number;
   crop?: string;
-  // Also support uppercase variants from API
   Id?: string;
   Name?: string;
   FieldArea?: number | null;
   CropType?: string | null;
 }
+
+type ViewMode = 'analysis' | 'history';
 
 const FieldAnalysisPage: React.FC = () => {
   const navigate = useNavigate();
@@ -34,47 +47,43 @@ const FieldAnalysisPage: React.FC = () => {
   const [selectedFieldId, setSelectedFieldId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingFields, setIsLoadingFields] = useState(true);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
   const [analysis, setAnalysis] = useState<FieldAnalysisResult | null>(null);
   const [companySummary, setCompanySummary] = useState<CompanyAnalysisSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('analysis');
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     risks: true,
     prediction: true,
     aiInsights: true,
-    recommendations: true
+    recommendations: true,
+    charts: false
   });
 
-  // Helper to get normalized field properties
   const getFieldId = (field: Field) => field.id || field.Id || '';
   const getFieldName = (field: Field) => field.name || field.Name || '';
   const getFieldArea = (field: Field) => field.area || field.FieldArea || 0;
   const getFieldCrop = (field: Field) => field.crop || field.CropType || '';
 
-  // Get companyId from user
   const companyId = user?.companyId || '';
 
-  // Load fields when user data changes
   useEffect(() => {
-    console.log('FieldAnalysisPage: user =', user);
-    console.log('FieldAnalysisPage: companyId =', user?.companyId);
-
     if (user?.companyId) {
       loadFields(user.companyId);
       loadCompanySummary(user.companyId);
     } else {
       setIsLoadingFields(false);
+      setIsLoadingSummary(false);
     }
   }, [user]);
 
   const loadFields = async (cId: string) => {
     try {
       setIsLoadingFields(true);
-      console.log('FieldAnalysisPage: Loading fields for company:', cId);
       const response = await apiClient.get(`/fields?companyId=${cId}`);
-      console.log('FieldAnalysisPage: Fields response:', response.data);
       const fieldsData = response.data?.data || response.data || [];
       const fieldsArray = Array.isArray(fieldsData) ? fieldsData : [];
-      console.log('FieldAnalysisPage: Fields array:', fieldsArray);
       setFields(fieldsArray);
     } catch (err) {
       console.error('Error loading fields:', err);
@@ -86,11 +95,13 @@ const FieldAnalysisPage: React.FC = () => {
 
   const loadCompanySummary = async (cId: string) => {
     try {
+      setIsLoadingSummary(true);
       const summary = await fieldAnalysisService.getCompanyAnalysis(cId);
       setCompanySummary(summary);
     } catch (err) {
       console.error('Error loading company summary:', err);
-      // Don't fail if summary can't load - fields should still work
+    } finally {
+      setIsLoadingSummary(false);
     }
   };
 
@@ -103,11 +114,11 @@ const FieldAnalysisPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setAnalysis(null);
+    setViewMode('analysis');
 
     try {
       const result = await fieldAnalysisService.analyzeField(selectedFieldId, companyId);
       setAnalysis(result);
-      // Refresh company summary after analysis
       await loadCompanySummary(companyId);
     } catch (err: any) {
       console.error('Analysis error:', err);
@@ -157,6 +168,22 @@ const FieldAnalysisPage: React.FC = () => {
     return new Date(dateString).toLocaleDateString('ka-GE');
   };
 
+  const handleExportPDF = () => {
+    if (analysis) {
+      exportToPDF(analysis);
+      setShowExportMenu(false);
+    }
+  };
+
+  const handleExportExcel = () => {
+    if (analysis) {
+      exportToExcel(analysis);
+      setShowExportMenu(false);
+    }
+  };
+
+  const selectedField = fields.find(f => getFieldId(f) === selectedFieldId);
+
   return (
     <div className="field-analysis-page">
       {/* Header */}
@@ -175,7 +202,9 @@ const FieldAnalysisPage: React.FC = () => {
       </div>
 
       {/* Company Summary */}
-      {companySummary?.summary && (
+      {isLoadingSummary ? (
+        <CompanySummarySkeleton />
+      ) : companySummary?.summary && (
         <div className="company-summary">
           <h2>მინდვრების მოკლე მიმოხილვა</h2>
           <div className="summary-cards">
@@ -225,58 +254,75 @@ const FieldAnalysisPage: React.FC = () => {
 
       {/* Field Selection */}
       <div className="analysis-section">
-        <div className="field-selector">
-          <label>აირჩიეთ მინდორი ანალიზისთვის</label>
-          {!companyId && (
-            <div className="error-message" style={{ marginBottom: '12px' }}>
-              <AlertTriangle size={20} />
-              <span>კომპანია ვერ მოიძებნა. გთხოვთ, შედით სისტემაში ხელახლა.</span>
-            </div>
-          )}
-          {companyId && fields.length === 0 && !isLoadingFields && (
-            <div className="error-message" style={{ marginBottom: '12px', background: '#fff3e0', color: '#e65100' }}>
-              <AlertTriangle size={20} />
-              <span>მინდვრები ვერ მოიძებნა. გთხოვთ, დაამატოთ მინდორი "ჩემი მინდვრები" გვერდზე.</span>
-            </div>
-          )}
-          <div className="selector-row">
-            <select
-              value={selectedFieldId}
-              onChange={(e) => setSelectedFieldId(e.target.value)}
-              disabled={isLoadingFields || isLoading || !companyId}
-            >
-              <option value="">{isLoadingFields ? 'იტვირთება...' : '-- აირჩიეთ მინდორი --'}</option>
-              {fields.map(field => {
-                const fieldId = getFieldId(field);
-                const fieldName = getFieldName(field);
-                const fieldArea = getFieldArea(field);
-                const fieldCrop = getFieldCrop(field);
-                return (
-                  <option key={fieldId} value={fieldId}>
-                    {fieldName} {fieldArea ? `(${fieldArea} ჰა)` : ''} {fieldCrop ? `- ${fieldCrop}` : ''}
-                  </option>
-                );
-              })}
-            </select>
-            <button
-              className="btn-analyze"
-              onClick={handleAnalyze}
-              disabled={!selectedFieldId || isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 size={20} className="spinner" />
-                  <span>მიმდინარეობს...</span>
-                </>
-              ) : (
-                <>
-                  <Brain size={20} />
-                  <span>AI ანალიზი</span>
-                </>
+        {isLoadingFields ? (
+          <FieldSelectorSkeleton />
+        ) : (
+          <div className="field-selector">
+            <label>აირჩიეთ მინდორი ანალიზისთვის</label>
+            {!companyId && (
+              <div className="error-message" style={{ marginBottom: '12px' }}>
+                <AlertTriangle size={20} />
+                <span>კომპანია ვერ მოიძებნა. გთხოვთ, შედით სისტემაში ხელახლა.</span>
+              </div>
+            )}
+            {companyId && fields.length === 0 && !isLoadingFields && (
+              <div className="error-message" style={{ marginBottom: '12px', background: '#fff3e0', color: '#e65100' }}>
+                <AlertTriangle size={20} />
+                <span>მინდვრები ვერ მოიძებნა. გთხოვთ, დაამატოთ მინდორი "ჩემი მინდვრები" გვერდზე.</span>
+              </div>
+            )}
+            <div className="selector-row">
+              <select
+                value={selectedFieldId}
+                onChange={(e) => {
+                  setSelectedFieldId(e.target.value);
+                  setAnalysis(null);
+                  setViewMode('analysis');
+                }}
+                disabled={isLoadingFields || isLoading || !companyId}
+              >
+                <option value="">{isLoadingFields ? 'იტვირთება...' : '-- აირჩიეთ მინდორი --'}</option>
+                {fields.map(field => {
+                  const fieldId = getFieldId(field);
+                  const fieldName = getFieldName(field);
+                  const fieldArea = getFieldArea(field);
+                  const fieldCrop = getFieldCrop(field);
+                  return (
+                    <option key={fieldId} value={fieldId}>
+                      {fieldName} {fieldArea ? `(${fieldArea} ჰა)` : ''} {fieldCrop ? `- ${fieldCrop}` : ''}
+                    </option>
+                  );
+                })}
+              </select>
+              <button
+                className="btn-analyze"
+                onClick={handleAnalyze}
+                disabled={!selectedFieldId || isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 size={20} className="spinner" />
+                    <span>მიმდინარეობს...</span>
+                  </>
+                ) : (
+                  <>
+                    <Brain size={20} />
+                    <span>AI ანალიზი</span>
+                  </>
+                )}
+              </button>
+              {selectedFieldId && (
+                <button
+                  className={`btn-history ${viewMode === 'history' ? 'active' : ''}`}
+                  onClick={() => setViewMode(viewMode === 'history' ? 'analysis' : 'history')}
+                >
+                  <History size={20} />
+                  <span>ისტორია</span>
+                </button>
               )}
-            </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {error && (
           <div className="error-message">
@@ -286,10 +332,22 @@ const FieldAnalysisPage: React.FC = () => {
         )}
       </div>
 
+      {/* Loading State */}
+      {isLoading && <AnalysisSkeleton />}
+
+      {/* Historical Trend View */}
+      {viewMode === 'history' && selectedFieldId && !isLoading && (
+        <HistoricalTrendView
+          fieldId={selectedFieldId}
+          fieldName={selectedField ? getFieldName(selectedField) : ''}
+          companyId={companyId}
+        />
+      )}
+
       {/* Analysis Results */}
-      {analysis && (
+      {analysis && viewMode === 'analysis' && !isLoading && (
         <div className="analysis-results">
-          {/* Field Info Header */}
+          {/* Field Info Header with Export */}
           <div className="result-header">
             <div className="field-info">
               <h2>{analysis.fieldName}</h2>
@@ -305,28 +363,49 @@ const FieldAnalysisPage: React.FC = () => {
                 )}
               </div>
             </div>
-            <div className="analysis-date">
-              <Clock size={16} />
-              <span>{formatDate(analysis.analysisDate)}</span>
+            <div className="header-actions">
+              <div className="export-dropdown">
+                <button
+                  className="btn-export"
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                >
+                  <Download size={18} />
+                  <span>ექსპორტი</span>
+                  <ChevronDown size={16} />
+                </button>
+                {showExportMenu && (
+                  <div className="export-menu">
+                    <button onClick={handleExportPDF}>
+                      <FileText size={18} />
+                      <span>PDF</span>
+                    </button>
+                    <button onClick={handleExportExcel}>
+                      <FileSpreadsheet size={18} />
+                      <span>Excel</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="analysis-date">
+                <Clock size={16} />
+                <span>{formatDate(analysis.analysisDate)}</span>
+              </div>
             </div>
           </div>
 
-          {/* Overall Risk Score */}
+          {/* Overall Risk Score with Gauge Chart */}
           <div className="overall-risk-card">
             <div className="risk-gauge">
-              <div
-                className="risk-score"
-                style={{ backgroundColor: getRiskLevelColor(analysis.risks.overall.level) }}
-              >
-                <span className="score-value">{analysis.risks.overall.score}</span>
-                <span className="score-label">რისკის ქულა</span>
-              </div>
+              <RiskGaugeChart
+                score={analysis.risks.overall.score}
+                level={analysis.risks.overall.level}
+                size={140}
+              />
               <div className="risk-level" style={{ color: getRiskLevelColor(analysis.risks.overall.level) }}>
                 {getRiskLevelText(analysis.risks.overall.level)} რისკი
               </div>
             </div>
 
-            {/* AI Health Score */}
             {analysis.aiInsights?.healthScore && (
               <div className="health-gauge">
                 <Activity size={24} />
@@ -336,6 +415,17 @@ const FieldAnalysisPage: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Risk Distribution Mini Chart */}
+            <div className="risk-distribution-mini">
+              <RiskDistributionChart
+                weather={analysis.risks.weather.score}
+                water={analysis.risks.water.score}
+                nutrient={analysis.risks.nutrient.score}
+                disease={analysis.risks.disease.score}
+                height={120}
+              />
+            </div>
           </div>
 
           {/* Risk Details */}
@@ -457,14 +547,12 @@ const FieldAnalysisPage: React.FC = () => {
               </button>
               {expandedSections.aiInsights && (
                 <div className="section-content">
-                  {/* Summary */}
                   {analysis.aiInsights.summary && (
                     <div className="insight-card summary">
                       <p>{analysis.aiInsights.summary}</p>
                     </div>
                   )}
 
-                  {/* Growth Stage */}
                   {analysis.aiInsights.growthStage && (
                     <div className="insight-card growth-stage">
                       <ThermometerSun size={20} />
@@ -475,7 +563,6 @@ const FieldAnalysisPage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Harvest Analysis */}
                   {analysis.aiInsights.harvestAnalysis && (
                     <div className="insight-card">
                       <h4><Target size={18} /> მოსავლის ანალიზი</h4>
@@ -499,7 +586,6 @@ const FieldAnalysisPage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Risk Analysis */}
                   {analysis.aiInsights.riskAnalysis && (
                     <div className="insight-card">
                       <h4><AlertTriangle size={18} /> რისკების ანალიზი</h4>
@@ -541,7 +627,6 @@ const FieldAnalysisPage: React.FC = () => {
               {expandedSections.recommendations && (
                 <div className="section-content">
                   <div className="recommendations-grid">
-                    {/* Immediate */}
                     {analysis.aiInsights.recommendations.immediate?.length > 0 && (
                       <div className="recommendation-card immediate">
                         <div className="card-header">
@@ -556,7 +641,6 @@ const FieldAnalysisPage: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Short Term */}
                     {analysis.aiInsights.recommendations.shortTerm?.length > 0 && (
                       <div className="recommendation-card short-term">
                         <div className="card-header">
@@ -571,7 +655,6 @@ const FieldAnalysisPage: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Long Term */}
                     {analysis.aiInsights.recommendations.longTerm?.length > 0 && (
                       <div className="recommendation-card long-term">
                         <div className="card-header">
@@ -600,62 +683,78 @@ const FieldAnalysisPage: React.FC = () => {
               <RefreshCw size={20} />
               <span>ახალი ანალიზი</span>
             </button>
+            <button
+              className="btn-view-history"
+              onClick={() => setViewMode('history')}
+            >
+              <History size={20} />
+              <span>ისტორიის ნახვა</span>
+            </button>
           </div>
         </div>
       )}
 
       {/* Fields Overview (when no analysis is active) */}
-      {!analysis && companySummary?.fields && companySummary.fields.length > 0 && (
-        <div className="fields-overview">
-          <h2>მინდვრების სტატუსი</h2>
-          <div className="fields-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>მინდორი</th>
-                  <th>ფართობი</th>
-                  <th>კულტურა</th>
-                  <th>რისკი</th>
-                  <th>პროგნოზი</th>
-                  <th>ბოლო ანალიზი</th>
-                </tr>
-              </thead>
-              <tbody>
-                {companySummary.fields.map(field => (
-                  <tr
-                    key={field.fieldId}
-                    onClick={() => setSelectedFieldId(field.fieldId)}
-                    className={selectedFieldId === field.fieldId ? 'selected' : ''}
-                  >
-                    <td>{field.fieldName}</td>
-                    <td>{field.fieldArea ? `${field.fieldArea} ჰა` : '-'}</td>
-                    <td>{field.cropType || '-'}</td>
-                    <td>
-                      {field.latestAnalysis ? (
-                        <span
-                          className="risk-indicator"
-                          style={{ backgroundColor: getRiskLevelColor(field.latestAnalysis.riskLevel) }}
-                        >
-                          {getRiskLevelText(field.latestAnalysis.riskLevel)}
-                        </span>
-                      ) : '-'}
-                    </td>
-                    <td>
-                      {field.latestAnalysis?.predictedYield
-                        ? `${Math.round(field.latestAnalysis.predictedYield).toLocaleString()} kg`
-                        : '-'}
-                    </td>
-                    <td>
-                      {field.latestAnalysis
-                        ? formatDate(field.latestAnalysis.date)
-                        : 'არ არის'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      {!analysis && !isLoading && viewMode === 'analysis' && (
+        <>
+          {isLoadingSummary ? (
+            <div className="fields-overview">
+              <h2>მინდვრების სტატუსი</h2>
+              <TableSkeleton rows={5} />
+            </div>
+          ) : companySummary?.fields && companySummary.fields.length > 0 && (
+            <div className="fields-overview">
+              <h2>მინდვრების სტატუსი</h2>
+              <div className="fields-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>მინდორი</th>
+                      <th>ფართობი</th>
+                      <th>კულტურა</th>
+                      <th>რისკი</th>
+                      <th>პროგნოზი</th>
+                      <th>ბოლო ანალიზი</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {companySummary.fields.map(field => (
+                      <tr
+                        key={field.fieldId}
+                        onClick={() => setSelectedFieldId(field.fieldId)}
+                        className={selectedFieldId === field.fieldId ? 'selected' : ''}
+                      >
+                        <td>{field.fieldName}</td>
+                        <td>{field.fieldArea ? `${field.fieldArea} ჰა` : '-'}</td>
+                        <td>{field.cropType || '-'}</td>
+                        <td>
+                          {field.latestAnalysis ? (
+                            <span
+                              className="risk-indicator"
+                              style={{ backgroundColor: getRiskLevelColor(field.latestAnalysis.riskLevel) }}
+                            >
+                              {getRiskLevelText(field.latestAnalysis.riskLevel)}
+                            </span>
+                          ) : '-'}
+                        </td>
+                        <td>
+                          {field.latestAnalysis?.predictedYield
+                            ? `${Math.round(field.latestAnalysis.predictedYield).toLocaleString()} kg`
+                            : '-'}
+                        </td>
+                        <td>
+                          {field.latestAnalysis
+                            ? formatDate(field.latestAnalysis.date)
+                            : 'არ არის'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

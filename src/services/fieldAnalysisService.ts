@@ -106,6 +106,28 @@ export interface CompanyAnalysisSummary {
 }
 
 export interface AnalysisHistoryItem {
+  id: string;
+  fieldId: string;
+  companyId: string;
+  analysisType: string;
+  riskScore: number;
+  riskLevel: string;
+  predictedYield: number | null;
+  confidence: number | null;
+  weatherRisk: number | null;
+  waterRisk: number | null;
+  nutrientRisk: number | null;
+  diseaseRisk: number | null;
+  aiInsights: AIInsights | null;
+  riskFactors: any;
+  predictionFactors: string[];
+  healthScore: number | null;
+  growthStage: string | null;
+  date: string;
+}
+
+// Raw API response type (Pascal case)
+interface RawAnalysisHistoryItem {
   Id: string;
   FieldId: string;
   CompanyId: string;
@@ -113,18 +135,40 @@ export interface AnalysisHistoryItem {
   RiskScore: number;
   RiskLevel: string;
   PredictedYield: number | null;
-  PredictionConfidence: number;
-  WeatherRiskScore: number;
-  WaterRiskScore: number;
-  NutrientRiskScore: number;
-  DiseaseRiskScore: number;
-  AIInsights: AIInsights;
+  PredictionConfidence: number | null;
+  WeatherRiskScore: number | null;
+  WaterRiskScore: number | null;
+  NutrientRiskScore: number | null;
+  DiseaseRiskScore: number | null;
+  AIInsights: AIInsights | null;
   RiskFactors: any;
   PredictionFactors: string[];
   HealthScore: number | null;
   GrowthStage: string | null;
   CreatedAt: string;
 }
+
+// Normalize API response to camelCase
+const normalizeHistoryItem = (item: RawAnalysisHistoryItem): AnalysisHistoryItem => ({
+  id: item.Id,
+  fieldId: item.FieldId,
+  companyId: item.CompanyId,
+  analysisType: item.AnalysisType,
+  riskScore: item.RiskScore,
+  riskLevel: item.RiskLevel,
+  predictedYield: item.PredictedYield,
+  confidence: item.PredictionConfidence,
+  weatherRisk: item.WeatherRiskScore,
+  waterRisk: item.WaterRiskScore,
+  nutrientRisk: item.NutrientRiskScore,
+  diseaseRisk: item.DiseaseRiskScore,
+  aiInsights: item.AIInsights,
+  riskFactors: item.RiskFactors,
+  predictionFactors: item.PredictionFactors || [],
+  healthScore: item.HealthScore,
+  growthStage: item.GrowthStage,
+  date: item.CreatedAt
+});
 
 export const fieldAnalysisService = {
   /**
@@ -142,11 +186,12 @@ export const fieldAnalysisService = {
    * Get analysis history for a field
    */
   async getAnalysisHistory(fieldId: string, companyId: string, limit = 10): Promise<AnalysisHistoryItem[]> {
-    const response = await apiClient.get<{ success: boolean; data: AnalysisHistoryItem[] }>(
+    const response = await apiClient.get<{ success: boolean; data: RawAnalysisHistoryItem[] }>(
       `/field-analysis/history/${fieldId}?companyId=${companyId}&limit=${limit}`
     );
     const data = response.data?.data || response.data || [];
-    return Array.isArray(data) ? data : [];
+    const rawItems = Array.isArray(data) ? data : [];
+    return rawItems.map(normalizeHistoryItem);
   },
 
   /**

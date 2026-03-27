@@ -1,0 +1,277 @@
+// Base skeleton animation
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// Analysis Skeleton
+.analysis-skeleton {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .skeleton-section {
+    margin-bottom: 24px;
+  }
+
+  .skeleton-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .skeleton-title {
+    height: 28px;
+    width: 200px;
+  }
+
+  .skeleton-badge {
+    height: 24px;
+    width: 80px;
+    border-radius: 12px;
+  }
+
+  .skeleton-meta {
+    display: flex;
+    gap: 16px;
+  }
+
+  .skeleton-text-sm {
+    height: 16px;
+    width: 100px;
+  }
+
+  .skeleton-text-md {
+    height: 20px;
+    width: 120px;
+  }
+
+  .skeleton-text-lg {
+    height: 24px;
+    width: 80px;
+  }
+
+  .skeleton-text-full {
+    height: 16px;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .skeleton-text-half {
+    height: 16px;
+    width: 50%;
+  }
+
+  .skeleton-section-title {
+    height: 20px;
+    width: 180px;
+    margin-bottom: 16px;
+  }
+
+  .skeleton-risk-card {
+    display: flex;
+    gap: 24px;
+    padding: 24px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 24px;
+
+    .skeleton-gauge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .skeleton-circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+    }
+
+    .skeleton-health {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: white;
+      border-radius: 10px;
+    }
+  }
+
+  .skeleton-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+  }
+
+  .skeleton-icon-lg {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .skeleton-card {
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #e0e0e0;
+
+    .skeleton-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+  }
+
+  .skeleton-prediction {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+
+    .skeleton-value-lg {
+      height: 48px;
+      width: 150px;
+    }
+
+    .skeleton-meter {
+      flex: 1;
+      max-width: 300px;
+    }
+
+    .skeleton-bar {
+      height: 8px;
+      width: 100%;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+  }
+}
+
+// Company Summary Skeleton
+.company-summary-skeleton {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .skeleton-title-md {
+    height: 22px;
+    width: 200px;
+    margin-bottom: 16px;
+  }
+
+  .skeleton-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .skeleton-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 10px;
+
+    .skeleton-card-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .skeleton-value {
+      height: 28px;
+      width: 60px;
+    }
+
+    .skeleton-label {
+      height: 14px;
+      width: 100px;
+    }
+  }
+}
+
+// Table Skeleton
+.table-skeleton {
+  overflow: hidden;
+
+  .skeleton-table-header {
+    display: flex;
+    gap: 16px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+
+    .skeleton-th {
+      flex: 1;
+      height: 18px;
+      min-width: 80px;
+    }
+  }
+
+  .skeleton-table-row {
+    display: flex;
+    gap: 16px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .skeleton-td {
+      flex: 1;
+      height: 20px;
+      min-width: 80px;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+// Field Selector Skeleton
+.field-selector-skeleton {
+  .skeleton-label {
+    height: 18px;
+    width: 180px;
+    margin-bottom: 12px;
+  }
+
+  .skeleton-row {
+    display: flex;
+    gap: 12px;
+
+    .skeleton-select {
+      flex: 1;
+      height: 46px;
+      border-radius: 8px;
+    }
+
+    .skeleton-button {
+      width: 140px;
+      height: 46px;
+      border-radius: 8px;
+    }
+  }
+}
